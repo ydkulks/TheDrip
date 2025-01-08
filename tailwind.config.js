@@ -2,7 +2,11 @@
 export default {
   content: ["./src/**/*.jsx"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily:{
+        integralcf: ["integralcf", "sans-serif"],
+      },
+    },
   },
   plugins: [],
 }

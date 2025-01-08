@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'integralcf';
+  src: url('/src/assets/Fonts/Fontspring-DEMO-integralcf-extrabold.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
