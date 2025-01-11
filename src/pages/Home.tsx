@@ -1,3 +1,4 @@
+import {Button} from "@/components/ui/button.tsx"
 // Images
 import HeroSection from '/images/HeroSectionWithStars.png'
 import Atsuko from '/images/Atsuko_Logo_Red2022.png'
@@ -18,9 +19,9 @@ function Hero() {
           Browse through our diverse range of meticulously crafted anime street-ware, designed
           to bring out your individuality and cater to your sense of style and love for anime.
         </p>
-        <button className="px-10 py-3 mb-10 rounded-full bg-black text-white font-bold hover:bg-white hover:text-black">
+        <Button className="px-12 py-5 mb-10 rounded-full bg-black text-white font-bold hover:bg-white hover:text-black">
           Shop Now
-        </button>
+        </Button>
         <div className="flex">
           <div>
             <p className="text-2xl font-bold">200+</p>
