@@ -1,3 +1,6 @@
+import { toast } from "sonner"
+import { X } from 'lucide-react'
+
 export function getCurrentTime(): string {
   const currentTime = new Date();
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -13,4 +16,14 @@ export function getCurrentTime(): string {
   } else {
     return `${dayName}, ${monthName} ${currentTime.getDate()}, ${currentTime.getFullYear()} at ${hours}:${minutes} PM`;
   }
+}
+
+export function toastNotification(message: string, description: string | undefined) {
+  toast(message, {
+    description: description,
+    action: {
+      label: <X className="text-gray-500 hover:text-black" />,
+      onClick: () => console.log(),
+    },
+  })
 }

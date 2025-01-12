@@ -155,10 +155,8 @@ function App() {
       </div>
 
       {/* TODO: Navbar functionality
-        - Working in-page navigation links [Shop, On Sale, New Arrivals, Categories]
-        - Working search bar
         - Cart
-        - Sign up
+        - Profile
         - Reactive layout
     */}
       <Navbar open={open} setOpen={setOpen} />
