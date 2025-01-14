@@ -10,21 +10,34 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { DeviconGoogle } from "@/assets/svgIcons"
 // Form validation
-import { SubmitHandler, useForm } from "react-hook-form"
+import { SubmitHandler, useForm, Controller } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import { useEffect } from "react"
 
 interface SignupFormInputs {
+  role: string;
   email: string;
   username: string;
   password: string;
   confirmpassword: string;
 }
 
+const roles = ['Customer', 'Seller', 'Admin']
 const signupSchema = yup.object().shape({
+  role: yup
+    .string()
+    .oneOf(roles, 'Invalid role selected')
+    .required("Role is required"),
   email: yup
     .string()
     .required("Email is required")
@@ -45,6 +58,7 @@ const signupSchema = yup.object().shape({
 
 const SignupForm = () => {
   const {
+    control,
     register,
     handleSubmit,
     formState: { errors },
@@ -56,6 +70,7 @@ const SignupForm = () => {
     toastNotification("Account has been created", getCurrentTime())
   }
   useEffect(() => {
+    if (errors.role) toastNotification("Invalid Role", errors.role.message);
     if (errors.email) toastNotification("Invalid Email", errors.email.message);
     if (errors.username) toastNotification("Invalid Username", errors.username.message);
     if (errors.password) toastNotification("Invalid Password", errors.password.message);
@@ -74,6 +89,25 @@ const SignupForm = () => {
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="flex flex-col gap-6">
+                <div className="grid gap-2">
+                  <Label htmlFor="role">Role*</Label>
+                  <Controller
+                    name="role"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue> {field.value || "Select role"} </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Customer">Customer</SelectItem>
+                          <SelectItem value="Seller">Seller</SelectItem>
+                          <SelectItem value="Admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email*</Label>
                   <Input

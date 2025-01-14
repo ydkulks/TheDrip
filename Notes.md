@@ -1,12 +1,12 @@
 # TheDrip
 
 ## TODO
-- [ ] User login
-    - [ ] Signup page
-    - [ ] Login page
-- [ ] Home page
-    - [ ] Navbar
-    - [ ] Hero section
+- [x] User login
+    - [x] Signup page
+    - [x] Login page
+- [x] Home page
+    - [x] Navbar
+    - [x] Hero section
 
 ## 🌐 Useful links
 - [Nonsense](https://nonsense.jp/)
