@@ -8,6 +8,14 @@
     - [x] Navbar
     - [x] Hero section
 
+## Technologies Used
+- React.js
+- TailwindCSS
+- Yup
+- ShadcnUI
+- Typescript
+- [ ] Redux and Redux Toolkit
+
 ## 🌐 Useful links
 - [Nonsense](https://nonsense.jp/)
 

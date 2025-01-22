@@ -56,6 +56,27 @@ const signupSchema = yup.object().shape({
     .required("Password is required"),
 })
 
+async function submitFormData(data: object, url: string) {
+  try {
+    // Send a POST request to the API endpoint with form data
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    // Check if the response was successful
+    if (response.ok) {
+      console.log("Form submitted successfully");
+      return response.json();
+    } else {
+      throw new Error(`Error submitting form: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+}
+
 const SignupForm = () => {
   const {
     control,
@@ -66,8 +87,16 @@ const SignupForm = () => {
 
   const onSubmit: SubmitHandler<SignupFormInputs> = (data) => {
     // TODO: Signup form submition to backend
-    console.log("Form Submitted: ", data)
-    toastNotification("Account has been created", getCurrentTime())
+    delete (data as any).confirmpassword;
+    // console.log("Form Submitted: ", data)
+    // WARN: Backend URL
+    const url = "http://localhost:8080/api/signup"
+    submitFormData(data, url).then((response) => {
+      console.log(response);
+      toastNotification("Account has been created", getCurrentTime())
+    }).catch((error) => {
+      console.error(error);
+    });
   }
   useEffect(() => {
     if (errors.role) toastNotification("Invalid Role", errors.role.message);

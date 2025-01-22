@@ -19,15 +19,34 @@ import { useEffect } from "react"
 import { getCurrentTime, toastNotification } from "@/components/utils"
 
 interface LoginFormInputs {
-  email: string;
+  username: string;
   password: string;
 }
 
+async function submitFormData(data: object, url: string) {
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      console.log("Form submitted successfully");
+      return response.json();
+    } else {
+      throw new Error(`Error submitting form: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+}
+
 const loginSchema = yup.object().shape({
-  email: yup
+  username: yup
     .string()
-    .required("Email is required")
-    .email("Invalid email address"),
+    .required("Username is required")
+    .min(3, "Must have at least 3 characters"),
   password: yup
     .string()
     .required("Password is required")
@@ -44,12 +63,21 @@ export function LoginForm({
   } = useForm<LoginFormInputs>({ resolver: yupResolver(loginSchema) })
 
   const onSubmit: SubmitHandler<LoginFormInputs> = (data) => {
-    // TODO: Login form submition to backend
     console.log("Form Submitted: ", data)
-    toastNotification("Account has been created", getCurrentTime())
+    // WARN: Backend URL
+    const url = "http://localhost:8080/api/login"
+    submitFormData(data, url).then((response) => {
+      console.log(response);
+      if (response.token) {
+        localStorage.setItem("token", response.token)
+        toastNotification("Logged in successfully", getCurrentTime())
+      }
+    }).catch((error) => {
+      console.error(error);
+    });
   }
   useEffect(() => {
-    if (errors.email) toastNotification("Invalid Email", errors.email.message);
+    if (errors.username) toastNotification("Invalid Username", errors.username.message);
     if (errors.password) toastNotification("Invalid Password", errors.password.message);
   }, [errors])
   return (
@@ -65,18 +93,19 @@ export function LoginForm({
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <div className="flex items-center">
+                  <Label htmlFor="username">Username*</Label>
+                </div>
                 <Input
-                  id="email"
-                  type="email"
-                  {...register("email")}
-                  placeholder="mail@example.com"
+                  id="username"
+                  type="text"
+                  {...register("username")}
                   required
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Password*</Label>
                   <a
                     href="#"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
