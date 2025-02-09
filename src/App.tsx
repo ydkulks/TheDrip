@@ -2,6 +2,7 @@ import { useState, useEffect, SetStateAction, Dispatch, FC } from "react"
 import Home from './pages/Home.tsx'
 import Signup from './pages/Signup.tsx'
 import Login from './app/login/page.tsx'
+import Profile from './pages/Profile.tsx'
 import { Routes, Route, Link, useNavigate } from 'react-router-dom'
 import { Button } from "@/components/ui/button.tsx"
 import { Toaster } from '@/components/ui/sonner.tsx'
@@ -14,6 +15,7 @@ import {
   ShoppingCart,
   CircleUserRound,
   PanelsTopLeft,
+  Truck,
 } from "lucide-react"
 import {
   CommandDialog,
@@ -25,6 +27,12 @@ import {
   CommandSeparator,
   CommandShortcut,
 } from "@/components/ui/command"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface CommandPaletteState {
   open: boolean;
@@ -88,7 +96,7 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Settings">
-            <CommandItem onSelect={() => handleSelect('/signup')}>
+            <CommandItem onSelect={() => handleSelect('/profile')}>
               <User />
               <span>Profile</span>
               <CommandShortcut>⌘P</CommandShortcut>
@@ -114,7 +122,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
   open;
   return (
 
-    <nav className="flex sticky justify-between py-5 px-8 text-sm">
+    <nav className="flex justify-between py-5 px-8 text-sm lg:px-[10%]">
       <div className="flex justify-start gap-5">
         <h2 className="font-integralcf font-extrabold text-2xl">
           <Link to="/">
@@ -132,12 +140,42 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
         <Button onClick={() => { setOpen((open) => !open) }} variant="outline" className="rounded-full text-gray-500 hover:text-gray-500">
           <Search />Search... <code className="bg-gray-200 text-gray-500 border px-1 rounded-md">⌘ P</code>
         </Button>
-        <Link to="/">
-          <Button variant="ghost" size="icon"><ShoppingCart /></Button>
-        </Link>
-        <Link to="/signup" >
-          <Button variant="ghost" size="icon"><CircleUserRound /></Button>
-        </Link>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Link to="/">
+                <Button variant="ghost" size="icon"><ShoppingCart /></Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Shopping Cart</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Link to="/">
+                <Button variant="ghost" size="icon"><Truck /></Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Order</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Link to="/profile" >
+                <Button variant="ghost" size="icon"><CircleUserRound /></Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Profile</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </nav>
   )
@@ -165,6 +203,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
 
       <Toaster />

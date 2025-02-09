@@ -6,6 +6,7 @@
     - [x] Login page
 - [x] Home page
     - [x] Navbar
+    - [ ] Tool tip
     - [x] Hero section
 
 ## Technologies Used

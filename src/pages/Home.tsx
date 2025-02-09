@@ -1,4 +1,4 @@
-import {Button} from "@/components/ui/button.tsx"
+import { Button } from "@/components/ui/button.tsx"
 // Images
 import HeroSection from '/images/HeroSectionWithStars.png'
 import Atsuko from '/images/Atsuko_Logo_Red2022.png'
@@ -10,7 +10,7 @@ import Supersick from '/images/Super.png'
 
 function Hero() {
   return (
-    <header className="flex justify-between bg-[#f2f0f1] px-10">
+    <header className="flex justify-between items-center bg-[#f2f0f1] px-10 lg:px-[10%]">
       <div className="lg:max-w-[50%]">
         <p className="font-extrabold text-5xl font-integralcf mt-14">FIND CLOTHES </p>
         <p className="font-extrabold text-5xl font-integralcf">THAT MATCHES </p>
