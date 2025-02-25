@@ -125,21 +125,75 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
     <nav className="flex justify-between py-5 px-8 text-sm lg:px-[10%]">
       <div className="flex justify-start gap-5">
         <h2 className="font-integralcf font-extrabold text-2xl">
-          <Link to="/">
-            THE DRIP.
-          </Link>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Link to="/">
+                  THE DRIP.
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Home</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </h2>
         <div className="flex justify-start gap-3 pt-1">
-          <Link to="/" className="hover:underline">Shop</Link>
-          <Link to="/" className="hover:underline">On Sale</Link>
-          <Link to="/" className="hover:underline">New Arrivals</Link>
-          <Link to="/" className="hover:underline">Categories</Link>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Link to="/" className="hover:underline">Shop</Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Shop</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Link to="/" className="hover:underline">On Sale</Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>On Sale</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Link to="/" className="hover:underline">New Arrivals</Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>New Arrivals</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Link to="/" className="hover:underline">Categories</Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Categories</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
       <div className="flex justify-end gap-1">
-        <Button onClick={() => { setOpen((open) => !open) }} variant="outline" className="rounded-full text-gray-500 hover:text-gray-500">
-          <Search />Search... <code className="bg-gray-200 text-gray-500 border px-1 rounded-md">⌘ P</code>
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button onClick={() => { setOpen((open) => !open) }} variant="outline" className="rounded-full text-gray-500 hover:text-gray-500">
+                <Search />Search... <code className="bg-gray-200 text-gray-500 border px-1 rounded-md">⌘ P</code>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Command Palette</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -189,7 +243,16 @@ function App() {
       {/* NOTE: Announcement banner*/}
       <div className="flex bg-black text-sm text-white justify-center py-2">
         Sign up and get 20% off to your first order.
-        <Link to="/signup"><strong className="underline">Sign up Now</strong></Link>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Link to="/signup"><strong className="underline">Sign up Now</strong></Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Signup</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* TODO: Navbar functionality

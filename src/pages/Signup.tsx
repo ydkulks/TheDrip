@@ -23,6 +23,13 @@ import { SubmitHandler, useForm, Controller } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import { useEffect } from "react"
+import { Link } from 'react-router-dom'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface SignupFormInputs {
   role: string;
@@ -191,9 +198,16 @@ const SignupForm = () => {
               </div>
               <div className="mt-4 text-center text-sm">
                 Don&apos;t have an account?{" "}
-                <a href="/login" className="underline underline-offset-4">
-                  Login
-                </a>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Link to="/login" className="hover:underline"> Login </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Login</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </form>
           </CardContent>

@@ -17,6 +17,13 @@ import * as yup from "yup"
 import { useEffect } from "react"
 // UI
 import { getCurrentTime, toastNotification } from "@/components/utils"
+import { Link } from 'react-router-dom'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface LoginFormInputs {
   username: string;
@@ -106,12 +113,22 @@ export function LoginForm({
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password*</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
+                  <div className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Link
+                            to="#"
+                            className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
+                            Forgot your password?
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Password reset</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
                 <Input
                   id="password"
@@ -130,9 +147,16 @@ export function LoginForm({
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <a href="/signup" className="underline underline-offset-4">
-                Sign up
-              </a>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Link to="/signup" className="hover:underline"> Sign up </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Signup</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </form>
         </CardContent>
