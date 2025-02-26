@@ -13,8 +13,9 @@
     - [ ] Create new product
         - [x] UI
         - [x] Validation
-        - [ ] Sync dropdown and checkbox with DB values
+        - [x] Sync dropdown and checkbox with DB values
         - [ ] Request to create new product
+        - [ ] Get token and userId from JWT
 
 ## Technologies Used
 - React.js

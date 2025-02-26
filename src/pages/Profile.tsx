@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 // UI
 import { getCurrentTime, toastNotification } from "@/components/utils";
 import {
@@ -28,24 +28,103 @@ import {
 interface ProductFormInputs {
   productName: string;
   productDescription: string;
-  productColors: (string|undefined)[];
-  productSizes: (string|undefined)[];
+  productColors: (string | number)[];
+  productSizes: (string | number)[];
   categoryId: string;
   seriesId: string;
   productPrice: number;
   productStock: number;
+  userId: number;
 }
 
+// TODO: Get token from JWT
+const token = "";
 async function productFormData(data: object, url: string) {
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json", 
+      },
       body: JSON.stringify(data),
     });
 
     if (response.ok) {
       console.log("Form submitted successfully");
+      toastNotification("Product has been created", getCurrentTime());
+      return response.json();
+    } else {
+      throw new Error(`Error submitting form: ${response.status}`);
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
+    toastNotification("An error occurred", getCurrentTime());
+  }
+}
+
+// Get the ID and VALUE from DB dynamically
+interface Category {
+  categoryId: number;
+  categoryName: string;
+}
+
+interface Series {
+  series_id: number;
+  series_name: string;
+}
+
+interface Size {
+  size_id: number;
+  size_name: string;
+}
+
+interface Color {
+  color_id: number;
+  color_name: string;
+}
+
+interface JsonData {
+  categories: Category[];
+  series: Series[];
+  sizes: Size[];
+  colors: Color[];
+}
+
+interface CategoryMap {
+  [key: string]: number; // Key is the formatted category name, value is the ID
+}
+
+interface SeriesMap {
+  [key: string]: number; // Key is the series name, value is the ID
+}
+
+interface ProductColor {
+  color_id: number;
+  color_name: string;
+}
+
+interface ProductSize {
+  size_id: number;
+  size_name: string;
+}
+
+// Default value
+var jsonData: JsonData = {
+  "categories": [{ "categoryId": 1, "categoryName": "short_sleeve_tees" }, { "categoryId": 2, "categoryName": "long_sleeve_tees" }, { "categoryId": 3, "categoryName": "button_down_shirt" }, { "categoryId": 4, "categoryName": "hoodies" }, { "categoryId": 5, "categoryName": "cargos" }, { "categoryId": 6, "categoryName": "shorts" }, { "categoryId": 7, "categoryName": "sweat_pants" }, { "categoryId": 8, "categoryName": "tops" }, { "categoryId": 9, "categoryName": "bottoms" }, { "categoryId": 10, "categoryName": "bomber_jackets" }],
+  "series": [{ "series_id": 1, "series_name": "Cyberpunk: Edgerunners" }],
+  "sizes": [{ "size_id": 1, "size_name": "small" }, { "size_id": 2, "size_name": "medium" }, { "size_id": 3, "size_name": "large" }, { "size_id": 4, "size_name": "extra_large" }, { "size_id": 5, "size_name": "double_extra_large" }],
+  "colors": [{ "color_id": 1, "color_name": "original" }, { "color_id": 2, "color_name": "white" }, { "color_id": 3, "color_name": "black" }]
+}
+
+// Fetch categories, series, colors and sizes data to sync
+async function syncFormFields(url: string) {
+  try {
+    const response = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (response.ok) {
       return response.json();
     } else {
       throw new Error(`Error submitting form: ${response.status}`);
@@ -54,35 +133,41 @@ async function productFormData(data: object, url: string) {
     console.error("An error occurred:", error);
   }
 }
+// WARN: Backend URL
+syncFormFields("http://localhost:8080/api/productspecifications")
+  .then((response) => {
+  // console.log(response);
+  jsonData = response as JsonData;
+});
 
-// TODO: Get the ID and VALUE from DB dynamically
-const categoryMap = {
-  "Short Sleeve Tees": 1,
-  "Long Sleeve Tees": 2,
-  "Button Down Shirt": 3,
-  Hoodies: 4,
-  Cargos: 5,
-  Shorts: 6,
-  "Sweat Pants": 7,
-  Tops: 8,
-  Bottoms: 9,
-  "Bomber Jackets": 10,
-};
-const seriesMap = {
-  "Cyberpunk: Edgerunners": 1,
-};
-const productColors = [
-  { color_id: 1, color_name: "original" },
-  { color_id: 2, color_name: "white" },
-  { color_id: 3, color_name: "black" },
-];
+const categoryMap: CategoryMap = {};
+jsonData.categories.forEach(category => {
+  categoryMap[formatName(category.categoryName)] = category.categoryId;
+});
 
-const productSizes = [
-  { size_id: 1, size_name: "small" },
-  { size_id: 2, size_name: "medium" },
-  { size_id: 3, size_name: "large" },
-  { size_id: 4, size_name: "extra_large" },
-];
+const seriesMap: SeriesMap = {};
+jsonData.series.forEach(series => {
+  seriesMap[formatName(series.series_name)] = series.series_id;
+});
+
+const productColors: ProductColor[] = [];
+jsonData.colors.forEach(color => {
+  productColors.push({ color_id: color.color_id, color_name: formatName(color.color_name) });
+});
+
+const productSizes: ProductSize[] = [];
+jsonData.sizes.forEach(size => {
+  productSizes.push({ size_id: size.size_id, size_name: formatName(size.size_name) });
+});
+
+
+// Helper function to format names (e.g., short_sleeve_tees to Short Sleeve Tees)
+function formatName(name: string) {
+  return name.replace(/_/g, ' ') // Replace underscores with spaces
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+    .join(' ');
+}
 
 const categoryKeys = Object.keys(categoryMap);
 const seriesKeys = Object.keys(seriesMap);
@@ -137,19 +222,29 @@ const ProductForm = () => {
     formState: { errors },
   } = useForm<ProductFormInputs>({
     resolver: yupResolver(productSchema),
-    defaultValues: { productColors: ["original"], productSizes: ["small"] },
+    defaultValues: { productColors: ["Original"], productSizes: ["Small"] },
   });
 
   const onSubmit: SubmitHandler<ProductFormInputs> = (data) => {
+    const dataToSubmit = { ...data };
+    dataToSubmit.categoryId = Number(categoryMap[dataToSubmit.categoryId]) as unknown as string;
+    dataToSubmit.seriesId = Number(seriesMap[dataToSubmit.seriesId]) as unknown as string;
+    dataToSubmit.productColors = dataToSubmit.productColors.map(colorName => {
+      const foundColor = productColors.find(color => color.color_name === colorName);
+      return foundColor ? foundColor.color_id : colorName; // Return ID or original name if not found
+    });
+    dataToSubmit.productSizes = dataToSubmit.productSizes.map(sizeName => {
+      const foundSize = productSizes.find(size => size.size_name === sizeName);
+      return foundSize ? foundSize.size_id : sizeName;
+    });
+    // TODO: Get user id from JWT
+    dataToSubmit.userId = 2;
     // WARN: Backend URL
     const url = "http://localhost:8080/seller/product";
-    console.log(data);
-    // TODO: Append additional fields into data
-    // Like, user_id
-    productFormData(data, url)
+    console.log(dataToSubmit);
+    productFormData(dataToSubmit, url)
       .then((response) => {
         console.log(response);
-        toastNotification("Product has been created", getCurrentTime());
       })
       .catch((error) => {
         console.error(error);
@@ -168,7 +263,7 @@ const ProductForm = () => {
   }, [errors]);
 
   const handleColorChange = (colorName: string, checked: string | boolean) => {
-    const currentColors = watch("productColors")?.filter(Boolean) as string[] || [];
+    const currentColors = watch("productColors")?.filter(Boolean) || [];
 
     const isChecked = typeof checked === 'boolean' ? checked : checked === 'true';
 
@@ -179,7 +274,7 @@ const ProductForm = () => {
     setValue("productColors", newColors);
   };
   const handleSizeChange = (sizeName: string, checked: string | boolean) => {
-    const currentSizes = watch("productSizes")?.filter(Boolean) as string[] || [];
+    const currentSizes = watch("productSizes")?.filter(Boolean) || [];
 
     // Type guard to ensure checked is a boolean
     const isChecked = typeof checked === 'boolean' ? checked : checked === 'true';
@@ -190,6 +285,8 @@ const ProductForm = () => {
 
     setValue("productSizes", newSizes);
   };
+  const [categories, _setCategories] = useState(Object.keys(categoryMap));
+  const [series, _setSeries] = useState(Object.keys(seriesMap));
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
@@ -225,9 +322,9 @@ const ProductForm = () => {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="productSizes">Sizes*</Label>
-                  <div className="flex items-center space-x-2">
+                  <div className="">
                     {productSizes.map((size) => (
-                      <div key={size.size_name} className="flex items-center space-x-2">
+                      <div key={size.size_name} className="flex items-center space-x-2 m-2">
                         <Checkbox
                           id={size.size_name}
                           checked={watch("productSizes")?.includes(size.size_name)}
@@ -242,9 +339,9 @@ const ProductForm = () => {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="productColors">Colors*</Label>
-                  <div className="flex items-center space-x-2">
+                  <div className="">
                     {productColors.map((color) => (
-                      <div key={color.color_name} className="flex items-center space-x-2">
+                      <div key={color.color_name} className="flex items-center space-x-2 m-2">
                         <Checkbox
                           id={color.color_name}
                           checked={watch("productColors")?.includes(color.color_name)}
@@ -270,24 +367,11 @@ const ProductForm = () => {
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Short Sleeve Tees">
-                            Short Sleeve Tees
-                          </SelectItem>
-                          <SelectItem value="Long Sleeve Tees">
-                            Long Sleeve Tees
-                          </SelectItem>
-                          <SelectItem value="Button Down Shirt">
-                            Button Down Shirt
-                          </SelectItem>
-                          <SelectItem value="Hoodies">Hoodies</SelectItem>
-                          <SelectItem value="Cargos">Cargos</SelectItem>
-                          <SelectItem value="Shorts">Shorts</SelectItem>
-                          <SelectItem value="Sweat Pants">Sweat Pants</SelectItem>
-                          <SelectItem value="Tops">Tops</SelectItem>
-                          <SelectItem value="Bottoms">Buttoms</SelectItem>
-                          <SelectItem value="Bomber Jackets">
-                            Bomber Jackets
-                          </SelectItem>
+                          {categories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     )}
@@ -304,9 +388,11 @@ const ProductForm = () => {
                           <SelectValue> {field.value || "Select series"} </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Cyberpunk: Edgerunners">
-                            Cyberpunk: Edgerunners
-                          </SelectItem>
+                          {series.map((seriesName) => (
+                            <SelectItem key={seriesName} value={seriesName}>
+                              {seriesName}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     )}
