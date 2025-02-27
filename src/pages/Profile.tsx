@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { jwtDecode } from "jwt-decode";
 // Form validation
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -38,14 +39,26 @@ interface ProductFormInputs {
 }
 
 // TODO: Get token from JWT
-const token = "";
+const token = localStorage.getItem("token");
+interface tokenType {
+  email: string;
+  exp: number;
+  iat: number;
+  id: number;
+  role: string;
+  sub: string;
+}
+let decodedToken: tokenType;
+if (token != null) {
+  decodedToken = jwtDecode(token);
+}
 async function productFormData(data: object, url: string) {
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: { 
+      headers: {
         'Authorization': `Bearer ${token}`,
-        "Content-Type": "application/json", 
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
@@ -136,9 +149,9 @@ async function syncFormFields(url: string) {
 // WARN: Backend URL
 syncFormFields("http://localhost:8080/api/productspecifications")
   .then((response) => {
-  // console.log(response);
-  jsonData = response as JsonData;
-});
+    // console.log(response);
+    jsonData = response as JsonData;
+  });
 
 const categoryMap: CategoryMap = {};
 jsonData.categories.forEach(category => {
@@ -226,7 +239,8 @@ const ProductForm = () => {
   });
 
   const onSubmit: SubmitHandler<ProductFormInputs> = (data) => {
-    const dataToSubmit = { ...data };
+    const dataToSubmit = { ...data }; // Copy data
+    // Get id from the name
     dataToSubmit.categoryId = Number(categoryMap[dataToSubmit.categoryId]) as unknown as string;
     dataToSubmit.seriesId = Number(seriesMap[dataToSubmit.seriesId]) as unknown as string;
     dataToSubmit.productColors = dataToSubmit.productColors.map(colorName => {
@@ -237,8 +251,8 @@ const ProductForm = () => {
       const foundSize = productSizes.find(size => size.size_name === sizeName);
       return foundSize ? foundSize.size_id : sizeName;
     });
-    // TODO: Get user id from JWT
-    dataToSubmit.userId = 2;
+    // Get user id from JWT
+    dataToSubmit.userId = decodedToken.id;
     // WARN: Backend URL
     const url = "http://localhost:8080/seller/product";
     console.log(dataToSubmit);

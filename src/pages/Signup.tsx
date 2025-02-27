@@ -74,8 +74,10 @@ async function submitFormData(data: object, url: string) {
 
     // Check if the response was successful
     if (response.ok) {
-      console.log("Form submitted successfully");
-      return response.json();
+      // console.log("Form submitted successfully");
+      // return response.json();
+      toastNotification("Account has been created", getCurrentTime())
+      return (window.location.href = '/login');
     } else {
       throw new Error(`Error submitting form: ${response.status}`);
     }
@@ -100,7 +102,6 @@ const SignupForm = () => {
     const url = "http://localhost:8080/api/signup"
     submitFormData(data, url).then((response) => {
       console.log(response);
-      toastNotification("Account has been created", getCurrentTime())
     }).catch((error) => {
       console.error(error);
     });

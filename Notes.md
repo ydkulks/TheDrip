@@ -1,7 +1,8 @@
-# TheDrip
+# 🎩 TheDrip - ザ・ドリップ
+**Lowkey Anime, High-Key Fashion**
 
-## TODO
-- [x] User login
+## ✅ TODO
+- [ ] User
     - [x] Signup page
     - [x] Login page
     - [ ] Role based Authorization
@@ -10,14 +11,21 @@
     - [x] Tool tip
     - [x] Hero section
 - [ ] Profile
-    - [ ] Create new product
+    - [ ] Account
+        - [ ] Logout
+        - [ ] Update user info
+        - [ ] Password reset
+    - [ ] Create or Update product
         - [x] UI
         - [x] Validation
         - [x] Sync dropdown and checkbox with DB values
-        - [ ] Request to create new product
-        - [ ] Get token and userId from JWT
+        - [x] Request to create new product
+        - [x] Get token and userId from JWT
+        - [ ] Upload product images
+    - [ ] Cart
+    - [ ] Order
 
-## Technologies Used
+## 🧑‍💻 Technologies Used
 - React.js
 - TailwindCSS
 - Yup
