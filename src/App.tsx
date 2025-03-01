@@ -3,7 +3,7 @@ import Home from './pages/Home.tsx'
 import Signup from './pages/Signup.tsx'
 import Login from './app/login/page.tsx'
 import Profile from './pages/Profile.tsx'
-import { Routes, Route, Link, useNavigate } from 'react-router-dom'
+import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Button } from "@/components/ui/button.tsx"
 import { Toaster } from '@/components/ui/sonner.tsx'
 import {
@@ -237,36 +237,42 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
 
 function App() {
   const [open, setOpen] = useState(false)
+  const location = useLocation();
+  const isProfilePage = location.pathname.startsWith('/profile');
 
   return (
     <>
       {/* NOTE: Announcement banner*/}
-      <div className="flex bg-black text-sm text-white justify-center py-2">
-        Sign up and get 20% off to your first order.
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Link to="/signup"><strong className="underline">Sign up Now</strong></Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Signup</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
+      {!isProfilePage &&
+        <div className="flex bg-black text-sm text-white w-full justify-center py-2">
+          Sign up and get 20% off to your first order.
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Link to="/signup"><strong className="underline">Sign up Now</strong></Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Signup</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      }
 
       {/* TODO: Navbar functionality
-        - Cart
-        - Profile
-        - Reactive layout
-    */}
-      <Navbar open={open} setOpen={setOpen} />
+            - Cart
+            - Profile
+            - Reactive layout
+          */}
+      {!isProfilePage &&
+        <Navbar open={open} setOpen={setOpen} />
+      }
       <CommandDialogPopup open={open} setOpen={setOpen} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/*" element={<Profile />} />
       </Routes>
 
       <Toaster />
