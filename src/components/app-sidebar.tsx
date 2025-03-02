@@ -1,6 +1,5 @@
-import { Search, Shirt, Images, Trash, UserCircle } from "lucide-react"
+import { Search, Shirt, Images, Trash, UserCircle, ChevronUp, LogOut, CreditCard, ShoppingCart, User } from "lucide-react"
 import { Link } from 'react-router-dom'
-import React from 'react';
 
 import {
   Sidebar,
@@ -18,6 +17,9 @@ import {
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { jwtDecode } from "jwt-decode";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import { Separator } from "./ui/separator";
 
 const token = localStorage.getItem("token");
 interface tokenType {
@@ -83,7 +85,7 @@ function triggerCommandPalette() {
   document.dispatchEvent(event);
 }
 
-const AppSidebar = React.memo(() => {
+const AppSidebar = () => {
   return (
     <Sidebar>
       <SidebarHeader>
@@ -136,12 +138,40 @@ const AppSidebar = React.memo(() => {
         <SidebarSeparator />
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenuButton className="flex">
-          <UserCircle />{decodedToken.sub + " "}|{" " + decodedToken.role}
-        </SidebarMenuButton>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton>
+              <UserCircle />
+              <p>{decodedToken.sub}</p><p className="text-zinc-400">{decodedToken.role}</p>
+              <ChevronUp className="ml-auto" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width] text-sm">
+            <DropdownMenuItem>
+              <SidebarMenuButton className="flex">
+                <User />Account
+              </SidebarMenuButton>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <SidebarMenuButton className="flex">
+                <CreditCard />Billing
+              </SidebarMenuButton>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <SidebarMenuButton className="flex">
+                <ShoppingCart />Cart
+              </SidebarMenuButton>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <SidebarMenuButton className="flex">
+                <LogOut />Logout
+              </SidebarMenuButton>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   )
-})
+}
 
 export { AppSidebar };

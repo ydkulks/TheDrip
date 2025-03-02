@@ -21,7 +21,7 @@
         - [x] Sync dropdown and checkbox with DB values
         - [x] Request to create new product
         - [x] Get token and userId from JWT
-        - [ ] Upload product images
+        - [x] Upload product images
     - [ ] Cart
     - [ ] Order
 

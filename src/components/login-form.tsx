@@ -42,10 +42,12 @@ async function submitFormData(data: object, url: string) {
       console.log("Form submitted successfully");
       return response.json();
     } else {
+      toastNotification("Error submitting form", getCurrentTime())
       throw new Error(`Error submitting form: ${response.status}`);
     }
   } catch (error) {
     console.error('An error occurred:', error);
+    toastNotification("An error occurred", getCurrentTime())
   }
 }
 
