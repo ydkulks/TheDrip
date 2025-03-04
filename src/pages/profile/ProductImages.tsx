@@ -1,4 +1,3 @@
-// TODO: Validation using Yup
 import React, { useEffect } from "react"
 import {
   UploadCloud,

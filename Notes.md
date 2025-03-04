@@ -15,13 +15,19 @@
         - [ ] Logout
         - [ ] Update user info
         - [ ] Password reset
-    - [ ] Create or Update product
+    - [x] Create or Update product
         - [x] UI
         - [x] Validation
         - [x] Sync dropdown and checkbox with DB values
         - [x] Request to create new product
         - [x] Get token and userId from JWT
         - [x] Upload product images
+    - [ ] List products
+        - [x] Request for data
+        - [x] Table of products
+        - [ ] Paginate
+        - [ ] Search
+        - [ ] Sort and Filter
     - [ ] Cart
     - [ ] Order
 

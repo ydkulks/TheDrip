@@ -95,7 +95,6 @@ const SignupForm = () => {
   } = useForm<SignupFormInputs>({ resolver: yupResolver(signupSchema) })
 
   const onSubmit: SubmitHandler<SignupFormInputs> = (data) => {
-    // TODO: Signup form submition to backend
     delete (data as any).confirmpassword;
     // console.log("Form Submitted: ", data)
     // WARN: Backend URL

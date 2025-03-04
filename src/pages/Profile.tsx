@@ -4,6 +4,7 @@ import { Routes, Route, Link } from "react-router-dom";
 import ProductImages from './profile/ProductImages.tsx'
 import ProductDetails from './profile/ProductDetails.tsx'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb.tsx";
+import ProductList from "./profile/ProductList.tsx";
 
 const Profile = () => {
   return (
@@ -30,6 +31,7 @@ const Profile = () => {
             </Breadcrumb>
           </div>
           <Routes>
+            <Route path="productlist" element={<ProductList />} />
             <Route path="productdetails" element={<ProductDetails />} />
             <Route path="productimages" element={<ProductImages />} />
           </Routes>
