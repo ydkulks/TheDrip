@@ -19,7 +19,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/t
 import { jwtDecode } from "jwt-decode";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
-import { Separator } from "./ui/separator";
 
 const token = localStorage.getItem("token");
 interface tokenType {
@@ -37,7 +36,7 @@ if (token != null) {
 const product = [
   {
     title: "List product",
-    url: "/profile",
+    url: "/profile/productlist",
     icon: Shirt,
   },
   {

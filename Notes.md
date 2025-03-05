@@ -25,9 +25,10 @@
     - [ ] List products
         - [x] Request for data
         - [x] Table of products
-        - [ ] Paginate
+        - [x] Paginate
         - [ ] Search
-        - [ ] Sort and Filter
+        - [x] Sort
+        - [ ] Filter
     - [ ] Cart
     - [ ] Order
 

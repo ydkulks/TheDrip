@@ -1,7 +1,14 @@
-// TODO: List products
-// - [ ] Send request
-// - [ ] List of products with pagination
-// - [ ] UI
+// TODO: Product imags
+import * as React from "react";
+import {
+  SortingState,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  VisibilityState,
+} from "@tanstack/react-table";
 import {
   Table,
   TableBody,
@@ -20,97 +27,147 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { columns } from "./columns"; // Import the columns
+import { Product, ApiResponse } from "@/components/types"; // Import types
+import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { getCurrentTime, toastNotification } from "@/components/utils"
+import { Card } from "@/components/ui/card";
 
-type Product = {
-  productId: number;
-  productName: string;
-  productDescription: string;
-  productPrice: number;
-  productStock: number;
-  seriesName: string;
-  categoryName: string;
-  sellerName: string;
-  images: string[];
-  sizes: string[];
-  colors: string[];
-};
+const PAGE_SIZE = 10;
 
-type ApiResponse = {
-  content: Product[];
-  page: {
-    size: number;
-    number: number;
-    totalElements: number;
-    totalPages: number;
-  };
-};
-
-type Props = {
-  page_size: number;
-};
+async function getData(page: number): Promise<Product[]> {
+  try {
+    const response = await fetch(
+      `http://localhost:8080/api/products?page=${page}&size=${PAGE_SIZE}`,
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data: ApiResponse = await response.json();
+    return data.content;
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    toastNotification("Error submitting form", getCurrentTime())
+    return []; // Return an empty array in case of error
+  }
+}
 
 export default function ProductList() {
-  const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState(0);
-  // const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(1); // Initialize totalPages
+  const [data, setData] = useState<Product[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
 
   useEffect(() => {
     const fetchData = async () => {
+      const products = await getData(page);
+      setData(products);
+
       try {
         const response = await fetch(
-          `http://localhost:8080/api/products?page=${page}&size=2`,
+          `http://localhost:8080/api/products?page=${page}&size=${PAGE_SIZE}`,
         );
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const data: ApiResponse = await response.json();
-        setProducts(data.content);
-        // setTotalCount(data.page.totalElements);
-        setTotalPages(data.page.totalPages); // Set totalPages from response
+        const apiResponse: ApiResponse = await response.json();
+        setTotalPages(apiResponse.page.totalPages);
       } catch (error) {
-        console.error("Failed to fetch products:", error);
+        console.error("Failed to fetch total pages:", error);
       }
     };
 
     fetchData();
   }, [page]);
 
-  // const pageCount = Math.ceil(totalCount / page_size); // No longer needed
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      columnVisibility,
+    },
+  });
 
   return (
     <>
-      <Table>
-        <TableCaption>Your products</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Id</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Sizes</TableHead>
-            <TableHead>Colors</TableHead>
-            <TableHead>Series</TableHead>
-            <TableHead>Stock</TableHead>
-            <TableHead className="text-right">Price</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {products.map((product) => (
-            <TableRow key={product.productId}>
-              <TableCell className="font-medium">{product.productId}</TableCell>
-              <TableCell>{product.productName}</TableCell>
-              <TableCell>{product.productDescription}</TableCell>
-              <TableCell>{product.categoryName}</TableCell>
-              <TableCell>{product.sizes}</TableCell>
-              <TableCell>{product.colors}</TableCell>
-              <TableCell>{product.seriesName}</TableCell>
-              <TableCell>{product.productStock}</TableCell>
-              <TableCell className="text-right">${product.productPrice}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="ml-auto m-2">
+            Columns <ChevronDown />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {table
+            .getAllColumns()
+            .filter((column) => column.getCanHide())
+            .map((column) => {
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) =>
+                    column.toggleVisibility(!!value)
+                  }
+                >
+                  {column.id}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Card className="m-2 overflow-y-scroll">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => {
+              return (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => {
+                    return (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Card>
       <Pagination>
         <PaginationContent>
           <PaginationItem>

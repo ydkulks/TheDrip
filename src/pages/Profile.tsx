@@ -1,12 +1,14 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, useLocation } from "react-router-dom";
 import ProductImages from './profile/ProductImages.tsx'
 import ProductDetails from './profile/ProductDetails.tsx'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb.tsx";
 import ProductList from "./profile/ProductList.tsx";
 
 const Profile = () => {
+  const location = useLocation();
+  const currentPage = location.pathname;
   return (
     <>
       <SidebarProvider>
