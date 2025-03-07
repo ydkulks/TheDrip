@@ -1,6 +1,6 @@
 // columns.tsx
 import { ColumnDef } from "@tanstack/react-table";
-import { Product } from "@/components/types"; // Assuming you have a types.ts file
+import { Product } from "@/components/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,14 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
+function formatName(name: string) {
+  return name.replace(/_/g, ' ') // Replace underscores with spaces
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+    .join(' ');
+}
 function ImageModal({ images }: { images: string[] }) {
   // console.log(images.map((image, index) => {return {image, index}}))
   return (
@@ -42,19 +49,38 @@ function ImageModal({ images }: { images: string[] }) {
 
 export const columns: ColumnDef<Product>[] = [
   {
-    accessorKey: "productId",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          ID
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
   },
+  // {
+  //   accessorKey: "productId",
+  //   header: ({ column }) => {
+  //     return (
+  //       <Button
+  //         variant="ghost"
+  //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+  //       >
+  //         ID
+  //         <ArrowUpDown className="ml-2 h-4 w-4" />
+  //       </Button>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "productName",
     header: ({ column }) => {
@@ -137,6 +163,9 @@ export const columns: ColumnDef<Product>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      return formatName(row.original.categoryName);
+    },
   },
   {
     accessorKey: "sellerName",
@@ -158,7 +187,7 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-1">
         {row.original.colors.map((color) => (
-          <Badge key={color}>{color}</Badge>
+          <Badge key={color}>{formatName(color)}</Badge>
         ))}
       </div>
     ),
@@ -169,7 +198,7 @@ export const columns: ColumnDef<Product>[] = [
     cell: ({ row }) => (
       <div className="flex flex-wrap gap-1">
         {row.original.sizes.map((size) => (
-          <Badge key={size}>{size}</Badge>
+          <Badge key={size}>{formatName(size)}</Badge>
         ))}
       </div>
     ),
