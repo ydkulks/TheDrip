@@ -1,4 +1,4 @@
-import { Search, Shirt, Images, Trash, UserCircle, ChevronUp, LogOut, CreditCard, ShoppingCart, User } from "lucide-react"
+import { Search, Shirt, Images, Trash } from "lucide-react"
 import { Link } from 'react-router-dom'
 
 import {
@@ -16,23 +16,9 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { jwtDecode } from "jwt-decode";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "./ui/dropdown-menu";
-import { DropdownMenuItem } from "@radix-ui/react-dropdown-menu";
+import { tokenDetails } from "./utils";
+import { NavUser } from "./nav-user";
 
-const token = localStorage.getItem("token");
-interface tokenType {
-  email: string;
-  exp: number;
-  iat: number;
-  id: number;
-  role: string;
-  sub: string;
-}
-let decodedToken: tokenType;
-if (token != null) {
-  decodedToken = jwtDecode(token);
-}
 const product = [
   {
     title: "List product",
@@ -83,6 +69,16 @@ function triggerCommandPalette() {
 
   document.dispatchEvent(event);
 }
+interface user {
+  name: string
+  email: string
+  avatar: string
+}
+const userData: user = {
+  name: tokenDetails().sub,
+  email: tokenDetails().role,
+  avatar: 'https://github.com/shadcn.png',
+};
 
 const AppSidebar = () => {
   return (
@@ -137,37 +133,7 @@ const AppSidebar = () => {
         <SidebarSeparator />
       </SidebarContent>
       <SidebarFooter>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton>
-              <UserCircle />
-              <p>{decodedToken.sub}</p><p className="text-zinc-400">{decodedToken.role}</p>
-              <ChevronUp className="ml-auto" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width] text-sm">
-            <DropdownMenuItem>
-              <SidebarMenuButton className="flex">
-                <User />Account
-              </SidebarMenuButton>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <SidebarMenuButton className="flex">
-                <CreditCard />Billing
-              </SidebarMenuButton>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <SidebarMenuButton className="flex">
-                <ShoppingCart />Cart
-              </SidebarMenuButton>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <SidebarMenuButton className="flex">
-                <LogOut />Logout
-              </SidebarMenuButton>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>
   )

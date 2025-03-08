@@ -10,14 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { jwtDecode } from "jwt-decode";
+// import { jwtDecode } from "jwt-decode";
 // Form validation
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useEffect, useState } from "react";
 // UI
-import { getCurrentTime, toastNotification } from "@/components/utils";
+import { getCurrentTime, toastNotification, tokenDetails } from "@/components/utils";
 import {
   Select,
   SelectContent,
@@ -40,18 +40,7 @@ interface ProductFormInputs {
 
 // Get token from JWT
 const token = localStorage.getItem("token");
-interface tokenType {
-  email: string;
-  exp: number;
-  iat: number;
-  id: number;
-  role: string;
-  sub: string;
-}
-let decodedToken: tokenType;
-if (token != null) {
-  decodedToken = jwtDecode(token);
-}
+
 async function productFormData(data: object, url: string) {
   try {
     const response = await fetch(url, {
@@ -125,33 +114,33 @@ interface ProductSize {
 // Default value
 var jsonData: JsonData = {
   "categories": [{ "categoryId": 1, "categoryName": "short_sleeve_tees" }, { "categoryId": 2, "categoryName": "long_sleeve_tees" }, { "categoryId": 3, "categoryName": "button_down_shirt" }, { "categoryId": 4, "categoryName": "hoodies" }, { "categoryId": 5, "categoryName": "cargos" }, { "categoryId": 6, "categoryName": "shorts" }, { "categoryId": 7, "categoryName": "sweat_pants" }, { "categoryId": 8, "categoryName": "tops" }, { "categoryId": 9, "categoryName": "bottoms" }, { "categoryId": 10, "categoryName": "bomber_jackets" }],
-  "series": [{ "series_id": 1, "series_name": "Cyberpunk: Edgerunners" }],
+  "series": [{ "series_id": 1, "series_name": "Cyberpunk: Edgerunners" },{ "series_id": 2, "series_name": "Dragon Ball Super: Super Hero" }],
   "sizes": [{ "size_id": 1, "size_name": "small" }, { "size_id": 2, "size_name": "medium" }, { "size_id": 3, "size_name": "large" }, { "size_id": 4, "size_name": "extra_large" }, { "size_id": 5, "size_name": "double_extra_large" }],
   "colors": [{ "color_id": 1, "color_name": "original" }, { "color_id": 2, "color_name": "white" }, { "color_id": 3, "color_name": "black" }]
 }
 
 // Fetch categories, series, colors and sizes data to sync
-async function syncFormFields(url: string) {
-  try {
-    const response = await fetch(url, {
-      headers: { "Content-Type": "application/json" },
-    });
+// async function syncFormFields(url: string) {
+//   try {
+//     const response = await fetch(url, {
+//       headers: { "Content-Type": "application/json" },
+//     });
 
-    if (response.ok) {
-      return response.json();
-    } else {
-      throw new Error(`Error submitting form: ${response.status}`);
-    }
-  } catch (error) {
-    console.error("An error occurred:", error);
-  }
-}
+//     if (response.ok) {
+//       return response.json();
+//     } else {
+//       throw new Error(`Error submitting form: ${response.status}`);
+//     }
+//   } catch (error) {
+//     console.error("An error occurred:", error);
+//   }
+// }
 // WARN: Backend URL
-syncFormFields("http://localhost:8080/api/productspecifications")
-  .then((response) => {
-    // console.log(response);
-    jsonData = response as JsonData;
-  });
+// syncFormFields("http://localhost:8080/api/productspecifications")
+//   .then((response) => {
+//     // console.log(response);
+//     jsonData = response as JsonData;
+//   });
 
 const categoryMap: CategoryMap = {};
 jsonData.categories.forEach(category => {
@@ -252,7 +241,7 @@ const ProductCreationForm = () => {
       return foundSize ? foundSize.size_id : sizeName;
     });
     // Get user id from JWT
-    dataToSubmit.userId = decodedToken.id;
+    dataToSubmit.userId = tokenDetails()?.id;
     // WARN: Backend URL
     const url = "http://localhost:8080/seller/product";
     console.log(dataToSubmit);

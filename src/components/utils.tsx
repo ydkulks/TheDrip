@@ -1,5 +1,6 @@
 import { toast } from "sonner"
 import { X } from 'lucide-react'
+import { jwtDecode } from "jwt-decode";
 
 export function getCurrentTime(): string {
   const currentTime = new Date();
@@ -26,4 +27,22 @@ export function toastNotification(message: string, description: string | undefin
       onClick: () => console.log(),
     },
   })
+}
+
+interface tokenType {
+  email: string;
+  exp: number;
+  iat: number;
+  id: number;
+  role: string;
+  sub: string;
+}
+export function tokenDetails(): tokenType {
+  const token = localStorage.getItem("token");
+  let decodedToken: tokenType;
+  if (token != null) {
+    decodedToken = jwtDecode(token);
+    return decodedToken;
+  }
+  return { email: "", exp: 0, iat: 0, id: 0, role: "", sub: "" };
 }

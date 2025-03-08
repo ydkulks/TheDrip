@@ -26,9 +26,14 @@
         - [x] Request for data
         - [x] Table of products
         - [x] Paginate
-        - [ ] Search
+        - [x] Search
         - [x] Sort
         - [ ] Filter
+        - [ ] Context Menu
+            - [x] Create new product
+            - [x] Copy selected product ID
+            - [ ] Updated selected products
+            - [ ] Delete selected products
     - [ ] Cart
     - [ ] Order
 
