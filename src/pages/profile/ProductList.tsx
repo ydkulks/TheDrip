@@ -37,7 +37,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getCurrentTime, toastNotification, tokenDetails } from "@/components/utils"
+import { getCurrentTime, toastNotification, tokenDetails, syncProductSpecifications, ProdSpecsType, prodSpecs, formatName } from "@/components/utils"
 import { Card } from "@/components/ui/card";
 import {
   ContextMenu,
@@ -53,16 +53,36 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 const PAGE_SIZE = 10;
 
-async function getData(page: number, searchTerm: string): Promise<ApiResponse> {
+async function getData(
+  page: number,
+  searchTerm: string,
+  categories: number[],
+  series: number[],
+  minPrice: number,
+  maxPrice: number
+): Promise<ApiResponse> {
   const tokenData = tokenDetails();
-  let url = `http://localhost:8080/api/products?size=${PAGE_SIZE}`; // ID removed for testing
-  // let url = `http://localhost:8080/api/products?userId=${tokenData?.id}&size=${PAGE_SIZE}`;
+  // let url = `http://localhost:8080/api/products?size=${PAGE_SIZE}`; // ID removed for testing
+  let url = `http://localhost:8080/api/products?userId=${tokenData?.id}&size=${PAGE_SIZE}`;
 
   if (searchTerm) {
     url += `&searchTerm=${searchTerm}`;
+  }
+  if (categories) {
+    url += `&categoryIds=${categories.join(",")}`;
+  }
+  if (series) {
+    url += `&seriesIds=${series.join(",")}`;
+  }
+  if (minPrice != 5) {
+    url += `&minPrice=${minPrice}`;
+  }
+  if (maxPrice != 100) {
+    url += `&maxPrice=${maxPrice}`;
   }
   if (page) {
     url += `&page=${page}`;
@@ -90,19 +110,24 @@ export default function ProductList() {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [selectedRow, setSelectedRow] = useState<Row<Product> | null>(null); // Track selected row
-  // const tableRef = useRef<HTMLTableElement>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sendRequest, setSendRequest] = useState("");
-  const [seriesId, setSeriesId] = useState<string | null>(null);
+  const [selectedSeries, setSelectedSeries] = useState<number[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState<number>(5);
   const [maxPrice, setMaxPrice] = useState<number>(100);
+  const [sendRequest, setSendRequest] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const apiResponse = await getData(
           page,
-          searchTerm
+          searchTerm,
+          selectedCategories,
+          selectedSeries,
+          minPrice,
+          maxPrice
         );
         setData(apiResponse.content);
         setTotalPages(apiResponse.page.totalPages);
@@ -117,8 +142,47 @@ export default function ProductList() {
   // Searching and Filtering
   const handleSearch = () => {
     // Trigger re-fetch with the current searchTerm
-    setSendRequest(searchTerm);
+    setSendRequest(!sendRequest);
     setPage(0); // Reset to the first page
+    // console.log(minPrice, maxPrice, seriesId);
+  };
+
+  let prodSpecsData: ProdSpecsType = prodSpecs;
+  useEffect(() => {
+    syncProductSpecifications()
+      .then((response) => {
+        prodSpecsData = response as ProdSpecsType;
+      });
+  }, [])
+
+  const handleSeriesToggle = (seriesId: number) => {
+    setSelectedSeries((prevSelected) => {
+      if (prevSelected.includes(seriesId)) {
+        return prevSelected.filter((id) => id !== seriesId);
+      } else {
+        return [...prevSelected, seriesId];
+      }
+    });
+  };
+  const handleCategoryToggle = (categoryId: number) => {
+    setSelectedCategories((prevSelected) => {
+      if (prevSelected.includes(categoryId)) {
+        return prevSelected.filter((id) => id !== categoryId);
+      } else {
+        return [...prevSelected, categoryId];
+      }
+    });
+  };
+  // For displaying in filters selected
+  const getCategoryNames = (categoryIds: number[]): string[] => {
+    return prodSpecsData.categories
+      .filter((category) => categoryIds.includes(category.categoryId))
+      .map((category) => category.categoryName);
+  };
+  const getSeriesNames = (seriesIds: number[]): string[] => {
+    return prodSpecsData.series
+      .filter((series) => seriesIds.includes(series.series_id))
+      .map((series) => series.series_name);
   };
 
   const handleMinPriceChange = (value: number[]) => {
@@ -129,6 +193,16 @@ export default function ProductList() {
   const handleMaxPriceChange = (value: number[]) => {
     const newMax = value[0]
     setMaxPrice(newMax < minPrice ? minPrice : newMax)
+  }
+
+  const handleReset = () => {
+    setMinPrice(5);
+    setMaxPrice(100);
+    setSelectedSeries([]);
+    setSelectedCategories([]);
+  }
+  const handleApply = () => {
+    setFilterOpen(false);
   }
 
 
@@ -194,7 +268,7 @@ export default function ProductList() {
     <>
       <div className="flex justify-between">
         <div className="flex">
-          <Dialog>
+          <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="m-2">
                 <Filter /> Filter
@@ -207,37 +281,43 @@ export default function ProductList() {
 
               <div className="grid gap-4 py-4">
                 {/* Series Input */}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="seriesId" className="text-right">
-                    Series:
-                  </Label>
-                  <Input
-                    id="seriesId"
-                    value={seriesId || ""}
-                    onChange={(e) => setSeriesId(e.target.value)}
-                    className="col-span-3"
-                    placeholder="Enter series name"
-                  />
-                </div>
-
-                {/* Category Checkboxes 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Categories:</Label>
+                  <Label className="text-sm font-medium">Series:</Label>
                   <div className="grid grid-cols-2 gap-2 mt-1">
-                    {categories.map((category) => (
-                      <div key={category} className="flex items-center space-x-2">
+                    {prodSpecsData.series.map((index) => (
+                      <div key={index.series_id} className="flex items-center space-x-2">
                         <Checkbox
-                          id={`category-${category}`}
-                          checked={selectedCategories.includes(category)}
-                          onCheckedChange={() => handleCategoryToggle(category)}
+                          id={`series-${index.series_id}`}
+                          checked={selectedSeries.includes(index.series_id)}
+                          onCheckedChange={() => handleSeriesToggle(index.series_id)}
                         />
-                        <Label htmlFor={`category-${category}`} className="text-sm font-normal cursor-pointer">
-                          {category}
+                        <Label htmlFor={`series-${index.series_id}`} className="text-sm font-normal cursor-pointer">
+                          {formatName(index.series_name)}
                         </Label>
                       </div>
                     ))}
                   </div>
-                </div>*/}
+                </div>
+
+                {/* Category Checkboxes */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Categories:</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {prodSpecsData.categories.map((category) => (
+                      <div key={category.categoryId} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`category-${category.categoryId}`}
+                          checked={selectedCategories.includes(category.categoryId)}
+                          onCheckedChange={() => handleCategoryToggle(category.categoryId)}
+                        />
+                        <Label htmlFor={`category-${category.categoryId}`} className="text-sm font-normal cursor-pointer">
+                          {formatName(category.categoryName)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
 
                 {/* Price Range */}
                 <div className="space-y-4">
@@ -264,68 +344,25 @@ export default function ProductList() {
                   </div>
                 </div>
 
-                {/* In Stock Filter */}
+                {/* In Stock Filter 
                 <div className="flex items-center space-x-2 pt-2">
                   <Checkbox id="in-stock" checked={true} onCheckedChange={() => { }} />
                   <Label htmlFor="in-stock" className="cursor-pointer">
                     Show only in-stock items
                   </Label>
-                </div>
+                </div>*/}
               </div>
 
               <DialogFooter className="flex sm:justify-between">
-                <Button variant="outline" onClick={() => { }}>
+                <Button variant="outline" onClick={handleReset}>
                   Reset Filters
                 </Button>
-                <Button onClick={() => { }} type="submit">
+                <Button onClick={handleApply} type="submit">
                   Apply Filters
                 </Button>
               </DialogFooter>
             </DialogContent>
-            {/*
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Filter Products</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="seriesId" className="text-right">
-                    Series:
-                  </Label>
-                  <Input
-                    id="seriesId"
-                    value={seriesId || ""}
-                    onChange={(e) => setSeriesId(e.target.value)}
-                    className="col-span-3"
-                  />
-                </div>
-                <div>
-                  <Label>Price Range</Label>
-                  <div className="flex gap-2">
-                    <div>
-                      <Label>Min:</Label>
-                      <Slider
-                        defaultValue={[minPrice || 0]}
-                        max={100}
-                        step={10}
-                        onValueChange={handleMinPriceChange}
-                      />
-                    </div>
-                    <div>
-                      <Label>Max:</Label>
-                      <Slider
-                        defaultValue={[maxPrice || 100]}
-                        max={100}
-                        step={10}
-                        onValueChange={handleMaxPriceChange}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </DialogContent>*/}
           </Dialog>
-          {/*<Input type="text" placeholder="Search..." className="w-64 m-2" />*/}
           <Input
             type="text"
             placeholder="Search..."
@@ -338,7 +375,6 @@ export default function ProductList() {
               }
             }}
           />
-          {/*<Button variant="outline" className="m-2"><Filter /></Button>*/}
           <Button variant="outline" className="m-2 ml-0" onClick={handleSearch}>
             <Search />
           </Button>
@@ -372,6 +408,30 @@ export default function ProductList() {
       </div>
 
       {/* TODO: Display active filters */}
+
+      <div>
+        {selectedSeries.length > 0 ?
+          <>
+            <span>Series: </span>
+            {getSeriesNames(selectedSeries).map((name) => (
+              <Badge key={name}>{formatName(name)}</Badge>
+            ))}
+          </> : null
+        }
+        {selectedCategories.length > 0 ?
+          <>
+            <span>Categories: </span>
+            {getCategoryNames(selectedCategories).map((name) => (
+              <Badge key={name}>{formatName(name)}</Badge>
+            ))}
+          </> : null
+        }
+        {minPrice != 5 || maxPrice != 100 ?
+          <>
+            <span>Min. Price: </span><Badge>${minPrice}</Badge>
+            <span>Max. Price: </span><Badge>${maxPrice}</Badge>
+          </> : null}
+      </div>
 
       {/*<ContextMenu open={!!selectedRow} onOpenChange={() => setSelectedRow(null)}>*/}
       <ContextMenu onOpenChange={() => setSelectedRow(null)}>

@@ -29,6 +29,12 @@
         - [x] Search
         - [x] Sort
         - [ ] Filter
+            - [x] Series
+            - [x] Categories
+            - [x] Price Range
+            - [ ] Colors
+            - [ ] Sizes
+            - [ ] Stock
         - [ ] Context Menu
             - [x] Create new product
             - [x] Copy selected product ID
