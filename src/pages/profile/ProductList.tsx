@@ -60,6 +60,9 @@ const PAGE_SIZE = 10;
 async function getData(
   page: number,
   searchTerm: string,
+  colors: number[],
+  sizes: number[],
+  inStock: boolean | null,
   categories: number[],
   series: number[],
   minPrice: number,
@@ -71,6 +74,15 @@ async function getData(
 
   if (searchTerm) {
     url += `&searchTerm=${searchTerm}`;
+  }
+  if (colors) {
+    url += `&colorIds=${colors.join(",")}`;
+  }
+  if (sizes) {
+    url += `&sizeIds=${sizes.join(",")}`;
+  }
+  if (inStock != null) {
+    url += `&inStock=${inStock}`;
   }
   if (categories) {
     url += `&categoryIds=${categories.join(",")}`;
@@ -111,6 +123,9 @@ export default function ProductList() {
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [selectedRow, setSelectedRow] = useState<Row<Product> | null>(null); // Track selected row
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedColors, setSelectedColors] = useState<number[]>([]);
+  const [selectedSizes, setSelectedSizes] = useState<number[]>([]);
+  const [inStock, setInStock] = useState<boolean | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<number[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState<number>(5);
@@ -124,6 +139,9 @@ export default function ProductList() {
         const apiResponse = await getData(
           page,
           searchTerm,
+          selectedColors,
+          selectedSizes,
+          inStock,
           selectedCategories,
           selectedSeries,
           minPrice,
@@ -155,6 +173,27 @@ export default function ProductList() {
       });
   }, [])
 
+  const handleColorToggle = (colorId: number) => {
+    setSelectedColors((prevSelected) => {
+      if (prevSelected.includes(colorId)) {
+        return prevSelected.filter((id) => id !== colorId);
+      } else {
+        return [...prevSelected, colorId];
+      }
+    });
+  };
+  const handleSizeToggle = (sizeId: number) => {
+    setSelectedSizes((prevSelected) => {
+      if (prevSelected.includes(sizeId)) {
+        return prevSelected.filter((id) => id !== sizeId);
+      } else {
+        return [...prevSelected, sizeId];
+      }
+    });
+  };
+  const handleInStockChange = (value: boolean | null) => {
+    setInStock(value);
+  }
   const handleSeriesToggle = (seriesId: number) => {
     setSelectedSeries((prevSelected) => {
       if (prevSelected.includes(seriesId)) {
@@ -174,6 +213,16 @@ export default function ProductList() {
     });
   };
   // For displaying in filters selected
+  const getColorNames = (colorIds: number[]): string[] => {
+    return prodSpecsData.colors
+      .filter((color) => colorIds.includes(color.color_id))
+      .map((color) => color.color_name);
+  };
+  const getSizeNames = (sizeIds: number[]): string[] => {
+    return prodSpecsData.sizes
+      .filter((size) => sizeIds.includes(size.size_id))
+      .map((size) => size.size_name);
+  };
   const getCategoryNames = (categoryIds: number[]): string[] => {
     return prodSpecsData.categories
       .filter((category) => categoryIds.includes(category.categoryId))
@@ -198,6 +247,9 @@ export default function ProductList() {
   const handleReset = () => {
     setMinPrice(5);
     setMaxPrice(100);
+    setSelectedColors([]);
+    setSelectedSizes([]);
+    setInStock(null);
     setSelectedSeries([]);
     setSelectedCategories([]);
   }
@@ -344,13 +396,80 @@ export default function ProductList() {
                   </div>
                 </div>
 
-                {/* In Stock Filter 
+                {/* Color Checkboxes */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Colors:</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {prodSpecsData.colors.map((color) => (
+                      <div key={color.color_id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`color-${color.color_id}`}
+                          checked={selectedColors.includes(color.color_id)}
+                          onCheckedChange={() => handleColorToggle(color.color_id)}
+                        />
+                        <Label htmlFor={`color-${color.color_id}`} className="text-sm font-normal cursor-pointer">
+                          {formatName(color.color_name)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Size Checkboxes */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Sizes:</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {prodSpecsData.sizes.map((size) => (
+                      <div key={size.size_id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`size-${size.size_id}`}
+                          checked={selectedSizes.includes(size.size_id)}
+                          onCheckedChange={() => handleSizeToggle(size.size_id)}
+                        />
+                        <Label htmlFor={`size-${size.size_id}`} className="text-sm font-normal cursor-pointer">
+                          {formatName(size.size_name)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* In Stock Filter */}
                 <div className="flex items-center space-x-2 pt-2">
-                  <Checkbox id="in-stock" checked={true} onCheckedChange={() => { }} />
-                  <Label htmlFor="in-stock" className="cursor-pointer">
-                    Show only in-stock items
-                  </Label>
-                </div>*/}
+                  <div>
+                    <label>
+                      <input
+                        type="radio"
+                        value="null"
+                        checked={inStock === null}
+                        onChange={() => handleInStockChange(null)}
+                      />
+                      All Products
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      <input
+                        type="radio"
+                        value="true"
+                        checked={inStock === true}
+                        onChange={() => handleInStockChange(true)}
+                      />
+                      In Stock Only
+                    </label>
+                  </div>
+                  <div>
+                    <label>
+                      <input
+                        type="radio"
+                        value="false"
+                        checked={inStock === false}
+                        onChange={() => handleInStockChange(false)}
+                      />
+                      Out of Stock Only
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <DialogFooter className="flex sm:justify-between">
@@ -410,6 +529,28 @@ export default function ProductList() {
       {/* TODO: Display active filters */}
 
       <div>
+        {inStock === null ? null :
+          <>
+            <span>Selected State: </span>
+            {inStock ? "In Stock" : "Out of Stock"}
+          </>
+        }
+        {selectedColors.length > 0 ?
+          <>
+            <span>Colors: </span>
+            {getColorNames(selectedColors).map((name) => (
+              <Badge key={name}>{formatName(name)}</Badge>
+            ))}
+          </> : null
+        }
+        {selectedSizes.length > 0 ?
+          <>
+            <span>Sizes: </span>
+            {getSizeNames(selectedSizes).map((name) => (
+              <Badge key={name}>{formatName(name)}</Badge>
+            ))}
+          </> : null
+        }
         {selectedSeries.length > 0 ?
           <>
             <span>Series: </span>

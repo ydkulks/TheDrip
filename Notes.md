@@ -22,26 +22,34 @@
         - [x] Request to create new product
         - [x] Get token and userId from JWT
         - [x] Upload product images
-    - [ ] List products
-        - [x] Request for data
-        - [x] Table of products
-        - [x] Paginate
-        - [x] Search
-        - [x] Sort
-        - [ ] Filter
-            - [x] Series
-            - [x] Categories
-            - [x] Price Range
-            - [ ] Colors
-            - [ ] Sizes
-            - [ ] Stock
-        - [ ] Context Menu
-            - [x] Create new product
-            - [x] Copy selected product ID
-            - [ ] Updated selected products
-            - [ ] Delete selected products
-    - [ ] Cart
-    - [ ] Order
+    - [ ] Seller features
+        - [ ] List products
+            - [x] Request for data
+            - [x] Table of products
+            - [x] Paginate
+            - [x] Search
+            - [x] Sort
+            - [x] Filter
+                - [x] Series
+                - [x] Categories
+                - [x] Price Range
+                - [x] Colors
+                - [x] Sizes
+                - [x] Stock
+            - [ ] Context Menu
+                - [x] Create new product
+                - [x] Copy selected product ID
+                - [ ] Updated selected products
+                - [ ] Delete selected products
+        - [ ] Update products
+        - [ ] Delete products
+    - [ ] Customer features
+        - [ ] Shop products
+        - [ ] Cart
+        - [ ] Order
+    - [ ] Admin features
+        - [ ] Users
+        - [ ] Products
 
 ## 🧑‍💻 Technologies Used
 - React.js

@@ -127,8 +127,7 @@ export default function ProductImages() {
       formData.append("file", file) // Append each file to the FormData
 
       fetch(
-        // `http://localhost:8080/seller/${username}/${productId}/image`,
-        `http://localhost:8080/seller/user/${productId}/image`, // Replace with your actual endpoint
+        `http://localhost:8080/seller/${username}/${productId}/image`,
         {
           method: "POST",
           headers: {
