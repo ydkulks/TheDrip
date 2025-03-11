@@ -54,6 +54,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function ProductList() {
   const [page, setPage] = useState(0);
@@ -263,7 +264,7 @@ export default function ProductList() {
 
   return (
     <>
-      <div className="flex justify-between">
+      <div className="flex flex-wrap justify-between">
         <div className="flex">
           <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
             <DialogTrigger asChild>
@@ -381,42 +382,26 @@ export default function ProductList() {
 
                 {/* In Stock Filter */}
                 <div className="flex text-sm items-center space-x-2 pt-2">
-                  <div>
-                    <label>
-                      <input
-                        className="mr-2"
-                        type="radio"
-                        value="null"
-                        checked={inStock === null}
-                        onChange={() => handleInStockChange(null)}
-                      />
-                      All Products
-                    </label>
-                  </div>
-                  <div>
-                    <label>
-                      <input
-                        className="mr-2"
-                        type="radio"
-                        value="true"
-                        checked={inStock === true}
-                        onChange={() => handleInStockChange(true)}
-                      />
-                      In Stock Only
-                    </label>
-                  </div>
-                  <div>
-                    <label>
-                      <input
-                        className="mr-2"
-                        type="radio"
-                        value="false"
-                        checked={inStock === false}
-                        onChange={() => handleInStockChange(false)}
-                      />
-                      Out of Stock Only
-                    </label>
-                  </div>
+                  <Label className="text-sm font-medium">Stock:</Label>
+                  <RadioGroup
+                    value={inStock === null ? "null" : inStock.toString()}
+                    onValueChange={(value) => handleInStockChange(value === "null" ? null : value === "true")}
+                    className="flex items-center space-x-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="null" id="all" />
+                      <Label htmlFor="all">All Products</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="inStock" />
+                      <Label htmlFor="inStock">In Stock Only</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="outOfStock" />
+                      <Label htmlFor="outOfStock">Out of Stock Only</Label>
+                    </div>
+                  </RadioGroup>
+
                 </div>
               </div>
 
@@ -474,53 +459,55 @@ export default function ProductList() {
         </DropdownMenu>
       </div>
 
-      {/* TODO: Display active filters */}
-
-      <div>
-        {inStock === null ? null :
-          <>
-            <span>Selected State: </span>
-            {inStock ? "In Stock" : "Out of Stock"}
-          </>
-        }
-        {selectedColors.length > 0 ?
-          <>
-            <span>Colors: </span>
-            {getColorNames(selectedColors).map((name) => (
-              <Badge key={name}>{formatName(name)}</Badge>
-            ))}
-          </> : null
-        }
-        {selectedSizes.length > 0 ?
-          <>
-            <span>Sizes: </span>
-            {getSizeNames(selectedSizes).map((name) => (
-              <Badge key={name}>{formatName(name)}</Badge>
-            ))}
-          </> : null
-        }
-        {selectedSeries.length > 0 ?
-          <>
-            <span>Series: </span>
-            {getSeriesNames(selectedSeries).map((name) => (
-              <Badge key={name}>{formatName(name)}</Badge>
-            ))}
-          </> : null
-        }
-        {selectedCategories.length > 0 ?
-          <>
-            <span>Categories: </span>
-            {getCategoryNames(selectedCategories).map((name) => (
-              <Badge key={name}>{formatName(name)}</Badge>
-            ))}
-          </> : null
-        }
-        {minPrice != 5 || maxPrice != 100 ?
-          <>
-            <span>Min. Price: </span><Badge>${minPrice}</Badge>
-            <span>Max. Price: </span><Badge>${maxPrice}</Badge>
-          </> : null}
-      </div>
+      {/* Display active filters */}
+      {inStock !== null || selectedColors.length > 0 || selectedSizes.length > 0 || selectedSeries.length > 0 || selectedCategories.length > 0 || minPrice != 5 || maxPrice != 100 ?
+        <div className="flex flex-wrap">
+          {inStock === null ? null :
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Selected State: </Label>
+              {inStock ? <Badge>In Stock</Badge> : <Badge>Out of Stock</Badge>}
+            </Card>
+          }
+          {selectedColors.length > 0 ?
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Colors: </Label>
+              {getColorNames(selectedColors).map((name) => (
+                <Badge key={name}>{formatName(name)}</Badge>
+              ))}
+            </Card> : null
+          }
+          {selectedSizes.length > 0 ?
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Sizes: </Label>
+              {getSizeNames(selectedSizes).map((name) => (
+                <Badge key={name}>{formatName(name)}</Badge>
+              ))}
+            </Card> : null
+          }
+          {selectedSeries.length > 0 ?
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Series: </Label>
+              {getSeriesNames(selectedSeries).map((name) => (
+                <Badge key={name}>{formatName(name)}</Badge>
+              ))}
+            </Card> : null
+          }
+          {selectedCategories.length > 0 ?
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Categories: </Label>
+              {getCategoryNames(selectedCategories).map((name) => (
+                <Badge key={name}>{formatName(name)}</Badge>
+              ))}
+            </Card> : null
+          }
+          {minPrice != 5 || maxPrice != 100 ?
+            <Card className="mx-2 p-2">
+              <Label className="flex-inline self-center">Price Range: </Label>
+              <Badge className="mx-2">${minPrice}</Badge>
+              <Badge className="mx-2">${maxPrice}</Badge>
+            </Card> : null}
+        </div>
+        : null}
 
       {/*<ContextMenu open={!!selectedRow} onOpenChange={() => setSelectedRow(null)}>*/}
       <ContextMenu onOpenChange={() => setSelectedRow(null)}>

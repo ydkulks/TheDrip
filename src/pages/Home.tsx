@@ -7,6 +7,7 @@ import Crunchyroll from '/images/Crunchyroll-Emblem.png'
 import Ckwai from '/images/ckwai_logo.png'
 import Nonsense from '/images/null_w_text.png'
 import Supersick from '/images/Super.png'
+import { Link } from "react-router-dom"
 
 function Hero() {
   return (
@@ -19,9 +20,11 @@ function Hero() {
           Browse through our diverse range of meticulously crafted anime street-ware, designed
           to bring out your individuality and cater to your sense of style and love for anime.
         </p>
-        <Button className="px-12 py-5 mb-10 rounded-full bg-black text-white font-bold hover:bg-white hover:text-black">
-          Shop Now
-        </Button>
+        <Link to="/shop">
+          <Button className="px-12 py-5 mb-10 rounded-full bg-black text-white font-bold hover:bg-white hover:text-black">
+            Shop Now
+          </Button>
+        </Link>
         <div className="flex">
           <div>
             <p className="text-2xl font-bold">200+</p>

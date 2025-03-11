@@ -45,6 +45,17 @@
         - [ ] Delete products
     - [ ] Customer features
         - [ ] Shop products
+            - [x] Basic UI
+            - [ ] Sort
+            - [ ] Sections
+                - [ ] On sale
+                - [ ] New arrivals
+                - [ ] Categories
+        - [ ] View product details
+            - [x] Basic UI
+            - [ ] Product reviews
+                - [ ] View reviews
+                - [ ] Submit review
         - [ ] Cart
         - [ ] Order
     - [ ] Admin features

@@ -89,6 +89,24 @@ export var prodSpecs: ProdSpecsType = {
   "colors": [{ "color_id": 1, "color_name": "original" }, { "color_id": 2, "color_name": "white" }, { "color_id": 3, "color_name": "black" }]
 }
 
+// Shorten the size names
+export function formatSize(sizeName: string): string {
+  switch (sizeName) {
+    case "small":
+      return "S";
+    case "medium":
+      return "M";
+    case "large":
+      return "L";
+    case "extra_large":
+      return "XL";
+    case "double_extra_large":
+      return "XXL";
+    default:
+      return sizeName; // Return original if no match
+  }
+}
+
 // Fetch categories, series, colors and sizes data to sync
 // WARN: Backend URL
 export async function syncProductSpecifications() {

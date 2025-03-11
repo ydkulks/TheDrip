@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { formatName, getData, prodSpecs, ProdSpecsType, syncProductSpecifications } from "@/components/utils";
 import { Label } from "@radix-ui/react-label";
@@ -275,7 +276,26 @@ const Shop = () => {
 
               {/* In Stock Filter */}
               <div className="flex text-sm items-center space-x-2 pt-2">
-                <div>
+                <Label className="text-sm font-medium">Stock:</Label>
+                <RadioGroup
+                  value={inStock === null ? "null" : inStock.toString()}
+                  onValueChange={(value) => handleInStockChange(value === "null" ? null : value === "true")}
+                  className="flex items-center space-x-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="null" id="all" />
+                    <Label htmlFor="all">All Products</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="true" id="inStock" />
+                    <Label htmlFor="inStock">In Stock Only</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="false" id="outOfStock" />
+                    <Label htmlFor="outOfStock">Out of Stock Only</Label>
+                  </div>
+                </RadioGroup>
+                {/*<div>
                   <label>
                     <input
                       className="mr-2"
@@ -310,7 +330,7 @@ const Shop = () => {
                     />
                     Out of Stock Only
                   </label>
-                </div>
+                </div>*/}
               </div>
             </div>
 
@@ -340,53 +360,57 @@ const Shop = () => {
           <Search />
         </Button>
       </div>
-      {/* TODO: Display active filters */}
 
-      <div>
-        {inStock === null ? null :
-          <>
-            <span>Selected State: </span>
-            {inStock ? "In Stock" : "Out of Stock"}
-          </>
-        }
-        {selectedColors.length > 0 ?
-          <>
-            <span>Colors: </span>
-            {getColorNames(selectedColors).map((name) => (
-              <Badge key={name}>{formatName(name)}</Badge>
-            ))}
-          </> : null
-        }
-        {selectedSizes.length > 0 ?
-          <>
-            <span>Sizes: </span>
-            {getSizeNames(selectedSizes).map((name) => (
-              <Badge key={name}>{formatName(name)}</Badge>
-            ))}
-          </> : null
-        }
-        {selectedSeries.length > 0 ?
-          <>
-            <span>Series: </span>
-            {getSeriesNames(selectedSeries).map((name) => (
-              <Badge key={name}>{formatName(name)}</Badge>
-            ))}
-          </> : null
-        }
-        {selectedCategories.length > 0 ?
-          <>
-            <span>Categories: </span>
-            {getCategoryNames(selectedCategories).map((name) => (
-              <Badge key={name}>{formatName(name)}</Badge>
-            ))}
-          </> : null
-        }
-        {minPrice != 5 || maxPrice != 100 ?
-          <>
-            <span>Min. Price: </span><Badge>${minPrice}</Badge>
-            <span>Max. Price: </span><Badge>${maxPrice}</Badge>
-          </> : null}
-      </div>
+      {/* Display active filters */}
+      {inStock !== null || selectedColors.length > 0 || selectedSizes.length > 0 || selectedSeries.length > 0 || selectedCategories.length > 0 || minPrice != 5 || maxPrice != 100 ?
+        <div className="flex flex-wrap">
+          {inStock === null ? null :
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Selected State: </Label>
+              {inStock ? <Badge>In Stock</Badge> : <Badge>Out of Stock</Badge>}
+            </Card>
+          }
+          {selectedColors.length > 0 ?
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Colors: </Label>
+              {getColorNames(selectedColors).map((name) => (
+                <Badge key={name}>{formatName(name)}</Badge>
+              ))}
+            </Card> : null
+          }
+          {selectedSizes.length > 0 ?
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Sizes: </Label>
+              {getSizeNames(selectedSizes).map((name) => (
+                <Badge key={name}>{formatName(name)}</Badge>
+              ))}
+            </Card> : null
+          }
+          {selectedSeries.length > 0 ?
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Series: </Label>
+              {getSeriesNames(selectedSeries).map((name) => (
+                <Badge key={name}>{formatName(name)}</Badge>
+              ))}
+            </Card> : null
+          }
+          {selectedCategories.length > 0 ?
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Categories: </Label>
+              {getCategoryNames(selectedCategories).map((name) => (
+                <Badge key={name}>{formatName(name)}</Badge>
+              ))}
+            </Card> : null
+          }
+          {minPrice != 5 || maxPrice != 100 ?
+            <Card className="mx-2 p-2">
+              <Label className="flex-inline self-center">Price Range: </Label>
+              <Badge className="mx-2">${minPrice}</Badge>
+              <Badge className="mx-2">${maxPrice}</Badge>
+            </Card> : null}
+        </div>
+        : null}
+
       <div className="container mx-auto p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {data.length > 0 ? data.map((product) => (
