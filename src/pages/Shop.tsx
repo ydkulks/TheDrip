@@ -7,10 +7,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Slider } from "@/components/ui/slider";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatName, getData, prodSpecs, ProdSpecsType, syncProductSpecifications } from "@/components/utils";
 import { Label } from "@radix-ui/react-label";
-import { Filter, Search, ShoppingCart, Star } from "lucide-react";
+import { Filter, Search, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -391,8 +390,8 @@ const Shop = () => {
       <div className="container mx-auto p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {data.length > 0 ? data.map((product) => (
-            <Card key={product.productId} className="cursor-pointer">
-              <Link to="/">
+            <Card key={product.productId} className="cursor-pointer hover:bg-accent">
+              <Link to={`/shop/view-product?productId=${product.productId}`}>
                 <CardContent className="p-4">
                   <div className="aspect-square rounded-md bg-muted flex items-center justify-center mb-2">
                     <img

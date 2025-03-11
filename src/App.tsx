@@ -4,6 +4,7 @@ import Signup from './pages/Signup.tsx'
 import Login from './app/login/page.tsx'
 import Profile from './pages/Profile.tsx'
 import Shop from './pages/Shop.tsx'
+import ViewProduct from './pages/ViewProduct.tsx'
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Button } from "@/components/ui/button.tsx"
 import { Toaster } from '@/components/ui/sonner.tsx'
@@ -274,6 +275,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/profile/*" element={<Profile />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/shop/view-product" element={<ViewProduct />} />
       </Routes>
 
       <Toaster />
