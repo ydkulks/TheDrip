@@ -3,6 +3,7 @@ import Home from './pages/Home.tsx'
 import Signup from './pages/Signup.tsx'
 import Login from './app/login/page.tsx'
 import Profile from './pages/Profile.tsx'
+import Shop from './pages/Shop.tsx'
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Button } from "@/components/ui/button.tsx"
 import { Toaster } from '@/components/ui/sonner.tsx'
@@ -66,15 +67,15 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Suggestions">
-            <CommandItem onSelect={() => handleSelect('/')}>
+            <CommandItem onSelect={() => handleSelect('/shop')}>
               <ShoppingBag />
               <span>On Sale</span>
             </CommandItem>
-            <CommandItem onSelect={() => handleSelect('/')}>
+            <CommandItem onSelect={() => handleSelect('/shop')}>
               <ShoppingBag />
               <span>New Arrivals</span>
             </CommandItem>
-            <CommandItem onSelect={() => handleSelect('/')}>
+            <CommandItem onSelect={() => handleSelect('/shop')}>
               <ShoppingBag />
               <span>Categories</span>
             </CommandItem>
@@ -92,6 +93,10 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
             <CommandItem onSelect={() => handleSelect('/login')}>
               <PanelsTopLeft />
               <span>Login</span>
+            </CommandItem>
+            <CommandItem onSelect={() => handleSelect('/shop')}>
+              <PanelsTopLeft />
+              <span>Shop</span>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
@@ -142,7 +147,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Link to="/" className="hover:underline">Shop</Link>
+                <Link to="/shop" className="hover:underline">Shop</Link>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Shop</p>
@@ -152,7 +157,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Link to="/" className="hover:underline">On Sale</Link>
+                <Link to="/shop" className="hover:underline">On Sale</Link>
               </TooltipTrigger>
               <TooltipContent>
                 <p>On Sale</p>
@@ -162,7 +167,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Link to="/" className="hover:underline">New Arrivals</Link>
+                <Link to="/shop" className="hover:underline">New Arrivals</Link>
               </TooltipTrigger>
               <TooltipContent>
                 <p>New Arrivals</p>
@@ -172,7 +177,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Link to="/" className="hover:underline">Categories</Link>
+                <Link to="/shop" className="hover:underline">Categories</Link>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Categories</p>
@@ -259,11 +264,6 @@ function App() {
         </div>
       }
 
-      {/* TODO: Navbar functionality
-            - Cart
-            - Profile
-            - Reactive layout
-          */}
       {!isProfilePage &&
         <Navbar open={open} setOpen={setOpen} />
       }
@@ -273,6 +273,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/profile/*" element={<Profile />} />
+        <Route path="/shop" element={<Shop />} />
       </Routes>
 
       <Toaster />

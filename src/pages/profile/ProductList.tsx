@@ -28,7 +28,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { columns } from "./columns"; // Import the columns
-import { Product, ApiResponse } from "@/components/types"; // Import types
+import { Product } from "@/components/types"; // Import types
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ClipboardPlus, Columns, Filter, Plus, Search, SquarePen, Trash } from "lucide-react";
 import {
@@ -37,7 +37,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getCurrentTime, toastNotification, tokenDetails, syncProductSpecifications, ProdSpecsType, prodSpecs, formatName } from "@/components/utils"
+import { getCurrentTime, toastNotification, tokenDetails, syncProductSpecifications, ProdSpecsType, prodSpecs, formatName, getData } from "@/components/utils"
 import { Card } from "@/components/ui/card";
 import {
   ContextMenu,
@@ -54,64 +54,6 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-
-const PAGE_SIZE = 10;
-
-async function getData(
-  page: number,
-  searchTerm: string,
-  colors: number[],
-  sizes: number[],
-  inStock: boolean | null,
-  categories: number[],
-  series: number[],
-  minPrice: number,
-  maxPrice: number
-): Promise<ApiResponse> {
-  const tokenData = tokenDetails();
-  // let url = `http://localhost:8080/api/products?size=${PAGE_SIZE}`; // ID removed for testing
-  let url = `http://localhost:8080/api/products?userId=${tokenData?.id}&size=${PAGE_SIZE}`;
-
-  if (searchTerm) {
-    url += `&searchTerm=${searchTerm}`;
-  }
-  if (colors) {
-    url += `&colorIds=${colors.join(",")}`;
-  }
-  if (sizes) {
-    url += `&sizeIds=${sizes.join(",")}`;
-  }
-  if (inStock != null) {
-    url += `&inStock=${inStock}`;
-  }
-  if (categories) {
-    url += `&categoryIds=${categories.join(",")}`;
-  }
-  if (series) {
-    url += `&seriesIds=${series.join(",")}`;
-  }
-  if (minPrice != 5) {
-    url += `&minPrice=${minPrice}`;
-  }
-  if (maxPrice != 100) {
-    url += `&maxPrice=${maxPrice}`;
-  }
-  if (page) {
-    url += `&page=${page}`;
-  }
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const data: ApiResponse = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch products:", error);
-    toastNotification("Error submitting form", getCurrentTime())
-    return { content: [], page: { size: 0, number: 0, totalElements: 0, totalPages: 0 } };
-  }
-}
 
 export default function ProductList() {
   const [page, setPage] = useState(0);
@@ -132,11 +74,13 @@ export default function ProductList() {
   const [maxPrice, setMaxPrice] = useState<number>(100);
   const [sendRequest, setSendRequest] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const IMG_COUNT = null;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const apiResponse = await getData(
+          tokenDetails().id,
           page,
           searchTerm,
           selectedColors,
@@ -144,6 +88,7 @@ export default function ProductList() {
           inStock,
           selectedCategories,
           selectedSeries,
+          IMG_COUNT,
           minPrice,
           maxPrice
         );
@@ -435,10 +380,11 @@ export default function ProductList() {
                 </div>
 
                 {/* In Stock Filter */}
-                <div className="flex items-center space-x-2 pt-2">
+                <div className="flex text-sm items-center space-x-2 pt-2">
                   <div>
                     <label>
                       <input
+                        className="mr-2"
                         type="radio"
                         value="null"
                         checked={inStock === null}
@@ -450,6 +396,7 @@ export default function ProductList() {
                   <div>
                     <label>
                       <input
+                        className="mr-2"
                         type="radio"
                         value="true"
                         checked={inStock === true}
@@ -461,6 +408,7 @@ export default function ProductList() {
                   <div>
                     <label>
                       <input
+                        className="mr-2"
                         type="radio"
                         value="false"
                         checked={inStock === false}

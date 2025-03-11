@@ -1,6 +1,7 @@
 import { toast } from "sonner"
 import { X } from 'lucide-react'
 import { jwtDecode } from "jwt-decode";
+import { ApiResponse } from "./types";
 
 export function getCurrentTime(): string {
   const currentTime = new Date();
@@ -112,3 +113,68 @@ export async function syncProductSpecifications() {
 //     // console.log(response);
 //     jsonData = response as JsonData;
 //   });
+
+const PAGE_SIZE = 10;
+export async function getData(
+  userId: number | null,
+  page: number,
+  searchTerm: string,
+  colors: number[],
+  sizes: number[],
+  inStock: boolean | null,
+  categories: number[],
+  series: number[],
+  imgCount: number | null,
+  minPrice: number,
+  maxPrice: number
+): Promise<ApiResponse> {
+
+  if (imgCount === null) {
+    imgCount = 5;
+  }
+
+  let url = `http://localhost:8080/api/products?imgCount=${imgCount}&size=${PAGE_SIZE}`;
+
+  if (userId != null) {
+    url += `&userId=${userId}`;
+  }
+  if (searchTerm) {
+    url += `&searchTerm=${searchTerm}`;
+  }
+  if (colors) {
+    url += `&colorIds=${colors.join(",")}`;
+  }
+  if (sizes) {
+    url += `&sizeIds=${sizes.join(",")}`;
+  }
+  if (inStock != null) {
+    url += `&inStock=${inStock}`;
+  }
+  if (categories) {
+    url += `&categoryIds=${categories.join(",")}`;
+  }
+  if (series) {
+    url += `&seriesIds=${series.join(",")}`;
+  }
+  if (minPrice != 5) {
+    url += `&minPrice=${minPrice}`;
+  }
+  if (maxPrice != 100) {
+    url += `&maxPrice=${maxPrice}`;
+  }
+  if (page) {
+    url += `&page=${page}`;
+  }
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data: ApiResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    toastNotification("Error submitting form", getCurrentTime())
+    return { content: [], page: { size: 0, number: 0, totalElements: 0, totalPages: 0 } };
+  }
+}
