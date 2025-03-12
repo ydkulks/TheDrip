@@ -4,33 +4,43 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Slider } from "@/components/ui/slider";
 import { formatName, getData, prodSpecs, ProdSpecsType, syncProductSpecifications } from "@/components/utils";
+import { DropdownMenu, DropdownMenuSub } from "@radix-ui/react-dropdown-menu";
 import { Label } from "@radix-ui/react-label";
-import { Filter, Search, Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ChevronDown, Filter, Search, SortAsc, Star } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+
+const sortBtns = [
+  { name: "New Arrivals", value: "product_created" },
+  { name: "Most Popular", value: "product_sold" },
+  { name: "Name", value: "product_name" },
+  { name: "Stock", value: "product_stock" },
+  { name: "Price: High to Low", value: "product_price_dec" },
+  { name: "Price: Low to High", value: "product_price_asc" },
+];
 
 const Shop = () => {
   const [page, setPage] = useState(0);
   const [data, setData] = useState<Product[]>([]);
   const [totalPages, setTotalPages] = useState(1);
-  // TODO: Implement sort
-  // const [sorting, setSorting] = React.useState<SortingState>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedColors, setSelectedColors] = useState<number[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<number[]>([]);
   const [inStock, setInStock] = useState<boolean | null>(null);
-  const [selectedSeries, setSelectedSeries] = useState<number[]>([]);
+  const [selectedSeries, setSelectedSeries] = useState<number[]>([2]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState<number>(5);
   const [maxPrice, setMaxPrice] = useState<number>(100);
   const [sendRequest, setSendRequest] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const IMG_COUNT = 1
+  const [selectedSort, setSelectedSort] = useState<string | undefined>(undefined)
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -112,6 +122,40 @@ const Shop = () => {
       }
     });
   };
+
+  // Handling sort
+  const handleSortChange = (value: string) => {
+    setSelectedSort(value);
+    console.log("Selected value:", value);
+  };
+  const sortedData = useMemo(() => {
+    if (!selectedSort) {
+      return [...data]; // Return a copy of the original data if no sorting is selected
+    }
+
+    const sorted = [...data]; // Create a copy to avoid mutating the original array
+
+    sorted.sort((a, b) => {
+      switch (selectedSort) {
+        case "product_name":
+          return a.productName.localeCompare(b.productName);
+        case "product_stock":
+          return a.productStock - b.productStock;
+        case "product_sold":
+          return 0; //add real comparison, assuming product_sold is a field on Product type
+        case "product_created":
+          return 0; //add real comparison, assuming product_created is a field on Product type
+        case "product_price_asc":
+          return a.productPrice - b.productPrice;
+        case "product_price_dec":
+          return b.productPrice - a.productPrice; // Descending order
+        default:
+          return 0; // No sorting
+      }
+    });
+    return sorted;
+  }, [data, selectedSort]);
+
   // For displaying in filters selected
   const getColorNames = (colorIds: number[]): string[] => {
     return prodSpecsData.colors
@@ -159,206 +203,186 @@ const Shop = () => {
 
   return (
     <>
-      <div className="flex">
-        <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="m-2">
-              <Filter /> Filter
+      <div className="flex justify-between">
+        <div className="flex">
+          <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="m-2">
+                <Filter /> Filter
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Filter Products</DialogTitle>
+              </DialogHeader>
+
+              <div className="grid gap-4 py-4">
+                {/* Series Input */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Series:</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {prodSpecsData.series.map((index) => (
+                      <div key={index.series_id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`series-${index.series_id}`}
+                          checked={selectedSeries.includes(index.series_id)}
+                          onCheckedChange={() => handleSeriesToggle(index.series_id)}
+                        />
+                        <Label htmlFor={`series-${index.series_id}`} className="text-sm font-normal cursor-pointer">
+                          {formatName(index.series_name)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Category Checkboxes */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Categories:</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {prodSpecsData.categories.map((category) => (
+                      <div key={category.categoryId} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`category-${category.categoryId}`}
+                          checked={selectedCategories.includes(category.categoryId)}
+                          onCheckedChange={() => handleCategoryToggle(category.categoryId)}
+                        />
+                        <Label htmlFor={`category-${category.categoryId}`} className="text-sm font-normal cursor-pointer">
+                          {formatName(category.categoryName)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+
+                {/* Price Range */}
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium">Price Range:</Label>
+
+                  <div className="space-y-4 px-2">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="min-price" className="text-xs">
+                          Min: ${minPrice}
+                        </Label>
+                      </div>
+                      <Slider id="min-price" value={[minPrice]} max={100} step={5} onValueChange={handleMinPriceChange} />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="max-price" className="text-xs">
+                          Max: ${maxPrice}
+                        </Label>
+                      </div>
+                      <Slider id="max-price" value={[maxPrice]} max={100} step={5} onValueChange={handleMaxPriceChange} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Color Checkboxes */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Colors:</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {prodSpecsData.colors.map((color) => (
+                      <div key={color.color_id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`color-${color.color_id}`}
+                          checked={selectedColors.includes(color.color_id)}
+                          onCheckedChange={() => handleColorToggle(color.color_id)}
+                        />
+                        <Label htmlFor={`color-${color.color_id}`} className="text-sm font-normal cursor-pointer">
+                          {formatName(color.color_name)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Size Checkboxes */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Sizes:</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    {prodSpecsData.sizes.map((size) => (
+                      <div key={size.size_id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`size-${size.size_id}`}
+                          checked={selectedSizes.includes(size.size_id)}
+                          onCheckedChange={() => handleSizeToggle(size.size_id)}
+                        />
+                        <Label htmlFor={`size-${size.size_id}`} className="text-sm font-normal cursor-pointer">
+                          {formatName(size.size_name)}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* In Stock Filter */}
+                <div className="flex text-sm items-center space-x-2 pt-2">
+                  <Label className="text-sm font-medium">Stock:</Label>
+                  <RadioGroup
+                    value={inStock === null ? "null" : inStock.toString()}
+                    onValueChange={(value) => handleInStockChange(value === "null" ? null : value === "true")}
+                    className="flex items-center space-x-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="null" id="all" />
+                      <Label htmlFor="all">All Products</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="true" id="inStock" />
+                      <Label htmlFor="inStock">In Stock Only</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="false" id="outOfStock" />
+                      <Label htmlFor="outOfStock">Out of Stock Only</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+
+              <DialogFooter className="flex sm:justify-between">
+                <Button variant="outline" onClick={handleReset}>
+                  Reset Filters
+                </Button>
+                <Button onClick={handleApply} type="submit">
+                  Apply Filters
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Input
+            type="text"
+            placeholder="Search..."
+            className="w-64 m-2"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+              }
+            }}
+          />
+          <Button variant="outline" className="m-2 ml-0" onClick={handleSearch}>
+            <Search />
+          </Button>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto m-2">
+              <SortAsc />Sort By <ChevronDown />
             </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Filter Products</DialogTitle>
-            </DialogHeader>
-
-            <div className="grid gap-4 py-4">
-              {/* Series Input */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Series:</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  {prodSpecsData.series.map((index) => (
-                    <div key={index.series_id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`series-${index.series_id}`}
-                        checked={selectedSeries.includes(index.series_id)}
-                        onCheckedChange={() => handleSeriesToggle(index.series_id)}
-                      />
-                      <Label htmlFor={`series-${index.series_id}`} className="text-sm font-normal cursor-pointer">
-                        {formatName(index.series_name)}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Category Checkboxes */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Categories:</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  {prodSpecsData.categories.map((category) => (
-                    <div key={category.categoryId} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`category-${category.categoryId}`}
-                        checked={selectedCategories.includes(category.categoryId)}
-                        onCheckedChange={() => handleCategoryToggle(category.categoryId)}
-                      />
-                      <Label htmlFor={`category-${category.categoryId}`} className="text-sm font-normal cursor-pointer">
-                        {formatName(category.categoryName)}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-
-              {/* Price Range */}
-              <div className="space-y-4">
-                <Label className="text-sm font-medium">Price Range:</Label>
-
-                <div className="space-y-4 px-2">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label htmlFor="min-price" className="text-xs">
-                        Min: ${minPrice}
-                      </Label>
-                    </div>
-                    <Slider id="min-price" value={[minPrice]} max={100} step={5} onValueChange={handleMinPriceChange} />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label htmlFor="max-price" className="text-xs">
-                        Max: ${maxPrice}
-                      </Label>
-                    </div>
-                    <Slider id="max-price" value={[maxPrice]} max={100} step={5} onValueChange={handleMaxPriceChange} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Color Checkboxes */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Colors:</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  {prodSpecsData.colors.map((color) => (
-                    <div key={color.color_id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`color-${color.color_id}`}
-                        checked={selectedColors.includes(color.color_id)}
-                        onCheckedChange={() => handleColorToggle(color.color_id)}
-                      />
-                      <Label htmlFor={`color-${color.color_id}`} className="text-sm font-normal cursor-pointer">
-                        {formatName(color.color_name)}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Size Checkboxes */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Sizes:</Label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  {prodSpecsData.sizes.map((size) => (
-                    <div key={size.size_id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`size-${size.size_id}`}
-                        checked={selectedSizes.includes(size.size_id)}
-                        onCheckedChange={() => handleSizeToggle(size.size_id)}
-                      />
-                      <Label htmlFor={`size-${size.size_id}`} className="text-sm font-normal cursor-pointer">
-                        {formatName(size.size_name)}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* In Stock Filter */}
-              <div className="flex text-sm items-center space-x-2 pt-2">
-                <Label className="text-sm font-medium">Stock:</Label>
-                <RadioGroup
-                  value={inStock === null ? "null" : inStock.toString()}
-                  onValueChange={(value) => handleInStockChange(value === "null" ? null : value === "true")}
-                  className="flex items-center space-x-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="null" id="all" />
-                    <Label htmlFor="all">All Products</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="true" id="inStock" />
-                    <Label htmlFor="inStock">In Stock Only</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="false" id="outOfStock" />
-                    <Label htmlFor="outOfStock">Out of Stock Only</Label>
-                  </div>
-                </RadioGroup>
-                {/*<div>
-                  <label>
-                    <input
-                      className="mr-2"
-                      type="radio"
-                      value="null"
-                      checked={inStock === null}
-                      onChange={() => handleInStockChange(null)}
-                    />
-                    All Products
-                  </label>
-                </div>
-                <div>
-                  <label>
-                    <input
-                      className="mr-2"
-                      type="radio"
-                      value="true"
-                      checked={inStock === true}
-                      onChange={() => handleInStockChange(true)}
-                    />
-                    In Stock Only
-                  </label>
-                </div>
-                <div>
-                  <label>
-                    <input
-                      className="mr-2"
-                      type="radio"
-                      value="false"
-                      checked={inStock === false}
-                      onChange={() => handleInStockChange(false)}
-                    />
-                    Out of Stock Only
-                  </label>
-                </div>*/}
-              </div>
-            </div>
-
-            <DialogFooter className="flex sm:justify-between">
-              <Button variant="outline" onClick={handleReset}>
-                Reset Filters
-              </Button>
-              <Button onClick={handleApply} type="submit">
-                Apply Filters
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <Input
-          type="text"
-          placeholder="Search..."
-          className="w-64 m-2"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSearch();
-            }
-          }}
-        />
-        <Button variant="outline" className="m-2 ml-0" onClick={handleSearch}>
-          <Search />
-        </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuRadioGroup value={selectedSort} onValueChange={handleSortChange}>
+              {sortBtns.map(btn => (
+                <DropdownMenuRadioItem key={btn.value} value={btn.value}>{btn.name}</DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Display active filters */}
@@ -413,7 +437,7 @@ const Shop = () => {
 
       <div className="container mx-auto p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {data.length > 0 ? data.map((product) => (
+          {sortedData.length > 0 ? sortedData.map((product) => (
             <Card key={product.productId} className="cursor-pointer hover:bg-accent">
               <Link to={`/shop/view-product?productId=${product.productId}`}>
                 <CardContent className="p-4">

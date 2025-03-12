@@ -47,6 +47,12 @@
         - [ ] Shop products
             - [x] Basic UI
             - [ ] Sort
+                - [ ] New Arrivals
+                - [ ] Most Popular
+                - [x] Name
+                - [x] Stock
+                - [x] Price
+            - [ ] Sync search params with useState hooks to preserve searches in browsing history
             - [ ] Sections
                 - [ ] On sale
                 - [ ] New arrivals
