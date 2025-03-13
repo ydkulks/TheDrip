@@ -40,9 +40,9 @@
                 - [x] Create new product
                 - [x] Copy selected product ID
                 - [ ] Updated selected products
-                - [ ] Delete selected products
+                - [x] Delete selected products
         - [ ] Update products
-        - [ ] Delete products
+        - [x] Delete products
     - [ ] Customer features
         - [ ] Shop products
             - [x] Basic UI

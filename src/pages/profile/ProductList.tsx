@@ -56,6 +56,37 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
+async function deleteProduct(id: number[]) {
+  const token = localStorage.getItem("token");
+  let url = `http://localhost:8080/seller/product?productId=${id}`;
+  try {
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      // Handle HTTP errors (e.g., 404, 500)
+      console.error(`HTTP error! status: ${response.status}`);
+      toastNotification("HTTP error! status", getCurrentTime());
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Process the successful response (e.g., parse JSON)
+    const data = await response.json();
+    console.log("Product deleted successfully:", data);
+    return data; // Or return a success status, etc.
+
+  } catch (error) {
+    // Handle network errors or exceptions
+    console.error("There was an error deleting the product:", error);
+    toastNotification("There was an error deleting the product", getCurrentTime());
+    throw error; // Re-throw the error to be handled by the caller
+  }
+}
+
 export default function ProductList() {
   const [page, setPage] = useState(0);
   const [data, setData] = useState<Product[]>([]);
@@ -242,23 +273,24 @@ export default function ProductList() {
 
   const handleUpdateProduct = () => {
     if (selectedRow) {
-      // Implement your update logic here
-      console.log("Update product:", selectedRow.original);
-      toastNotification(
-        "Update product",
-        getCurrentTime(),
-      );
+      console.log("Selected Row:", selectedRow);
+    }
+    const rows = table.getSelectedRowModel().flatRows.map((row) => row.original.productId)
+    if (rows.length >= 1) {
+      console.log("Update product:", rows);
+      toastNotification("Update product", getCurrentTime());
     }
   };
 
   const handleDeleteProduct = () => {
-    if (selectedRow) {
-      // Implement your delete logic here
-      console.log("Delete product:", selectedRow.original);
-      toastNotification(
-        "Delete product",
-        getCurrentTime(),
-      );
+    const rows = table.getSelectedRowModel().flatRows.map((row) => row.original.productId)
+    if (rows.length >= 1) {
+      deleteProduct(rows)
+        .then(_result => {
+          // console.log(result);
+          toastNotification("Deleted product", getCurrentTime());
+          handleSearch();
+        });
     }
   };
 

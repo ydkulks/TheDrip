@@ -49,7 +49,7 @@ const ViewProduct = () => {
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedSize, setSelectedSize] = useState(data?.sizes[2] || data?.sizes[0])
   const [selectedColor, setSelectedColor] = useState(data?.colors[0])
-  const [quantity, setQuantity] = useState(1)
+  const [quantity, setQuantity] = useState(0)
 
   let productId: number | null = null;
 
@@ -180,7 +180,11 @@ const ViewProduct = () => {
               <div className="space-y-4">
                 <div>
                   <h2 className="text-lg font-semibold">Description</h2>
-                  <p className="mt-2 text-muted-foreground">{data.productDescription}</p>
+                  {data.productDescription.split('\n').map((line, index) => (
+                    <p key={index} className="mt-2 text-muted-foreground">
+                      {line}
+                    </p>
+                  ))}
                 </div>
 
                 <div>
@@ -228,8 +232,8 @@ const ViewProduct = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      disabled={quantity <= 1}
+                      onClick={() => setQuantity((q) => Math.max(0, q - 1))}
+                      disabled={quantity <= 0}
                     >
                       <Minus className="h-4 w-4" />
                       <span className="sr-only">Decrease quantity</span>
@@ -252,11 +256,11 @@ const ViewProduct = () => {
               <Separator />
 
               <div className="flex flex-col space-y-3 sm:flex-row sm:space-x-3 sm:space-y-0">
-                <Button className="flex-1" onClick={handleAddToCart}>
+                <Button className="flex-1" onClick={handleAddToCart} disabled={quantity === 0}>
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Add to Cart
                 </Button>
-                <Button className="flex-1" variant="secondary" onClick={handleBuyNow}>
+                <Button className="flex-1" variant="secondary" onClick={handleBuyNow} disabled={quantity === 0}>
                   <Truck /> Order Now
                 </Button>
               </div>
