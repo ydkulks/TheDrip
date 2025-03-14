@@ -8,7 +8,6 @@ import {
   useReactTable,
   VisibilityState,
   RowSelectionState,
-  Row,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -55,6 +54,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 async function deleteProduct(id: number[]) {
   const token = localStorage.getItem("token");
@@ -95,7 +95,6 @@ export default function ProductList() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
-  const [selectedRow, setSelectedRow] = useState<Row<Product> | null>(null); // Track selected row
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedColors, setSelectedColors] = useState<number[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<number[]>([]);
@@ -107,6 +106,7 @@ export default function ProductList() {
   const [sendRequest, setSendRequest] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const IMG_COUNT = null;
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -272,13 +272,20 @@ export default function ProductList() {
   };
 
   const handleUpdateProduct = () => {
-    if (selectedRow) {
-      console.log("Selected Row:", selectedRow);
-    }
     const rows = table.getSelectedRowModel().flatRows.map((row) => row.original.productId)
-    if (rows.length >= 1) {
-      console.log("Update product:", rows);
+    if (rows.length === 1) {
+      navigate(`/profile/productdetails?id=${rows}`, { replace: true });
       toastNotification("Update product", getCurrentTime());
+    }
+    if (rows.length > 1) {
+      toastNotification("Cannot update more then one product at a time", getCurrentTime());
+    }
+  };
+
+  const handleOpenConfirmation = () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    if (selectedRows.length > 0) {
+      setIsConfirmationOpen(true);
     }
   };
 
@@ -542,7 +549,7 @@ export default function ProductList() {
         : null}
 
       {/*<ContextMenu open={!!selectedRow} onOpenChange={() => setSelectedRow(null)}>*/}
-      <ContextMenu onOpenChange={() => setSelectedRow(null)}>
+      <ContextMenu>
         <ContextMenuTrigger>
           <Card className="m-2 overflow-y-scroll">
             <Table>
@@ -617,7 +624,7 @@ export default function ProductList() {
           </ContextMenuItem>
           <ContextMenuItem
             disabled={table.getFilteredSelectedRowModel().rows.length >= 1 ? false : true}
-            onClick={handleDeleteProduct}
+            onClick={handleOpenConfirmation}
             className="gap-2">
             <Trash size={16} />
             Delete Selected
@@ -652,6 +659,20 @@ export default function ProductList() {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
+      <AlertDialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. Are you sure you want to delete selected products?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteProduct}> Delete </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </>
   );

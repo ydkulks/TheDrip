@@ -71,12 +71,14 @@ function triggerCommandPalette() {
 }
 interface user {
   name: string
+  role: string
   email: string
   avatar: string
 }
 const userData: user = {
   name: tokenDetails().sub,
-  email: tokenDetails().role,
+  role: tokenDetails().role,
+  email: tokenDetails().email,
   avatar: 'https://github.com/shadcn.png',
 };
 
