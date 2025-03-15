@@ -22,17 +22,17 @@ import { NavUser } from "./nav-user";
 const product = [
   {
     title: "List product",
-    url: "/profile/productlist",
+    url: "/profile/product_list",
     icon: Shirt,
   },
   {
     title: "Create product",
-    url: "/profile/productdetails",
+    url: "/profile/product_details",
     icon: Shirt,
   },
   {
     title: "Upload Images",
-    url: "/profile/productimages",
+    url: "/profile/product_images",
     icon: Images,
   },
   {
@@ -44,11 +44,6 @@ const product = [
     title: "Update Images",
     url: "/profile",
     icon: Images,
-  },
-  {
-    title: "Delete Product",
-    url: "/profile",
-    icon: Trash,
   },
   {
     title: "Delete Images",

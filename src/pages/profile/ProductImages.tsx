@@ -10,10 +10,10 @@ import {
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Input } from "@/components/ui/input"
 import { jwtDecode } from "jwt-decode"
 import * as yup from "yup"
 import { toastNotification } from "@/components/utils"
+import { useSearchParams } from "react-router-dom"
 
 type FileStatus = "idle" | "uploading" | "success" | "error"
 
@@ -71,7 +71,7 @@ export default function ProductImages() {
   const [isDragging, setIsDragging] = React.useState(false)
   const [files, setFiles] = React.useState<FileWithStatus[]>([])
   const fileInputRef = React.useRef<HTMLInputElement>(null)
-  const [productId, setProductId] = React.useState("")
+  // const [productId, setProductId] = React.useState<number|null>(null)
   const token = localStorage.getItem("token")
   let decodedToken: tokenType | null = null
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([])
@@ -79,6 +79,22 @@ export default function ProductImages() {
     productId?: string
     files?: string
   }>({})
+  const [searchParams] = useSearchParams();
+  const productIdParam = searchParams.get('productId');
+  let productId: number | null = null;
+
+  if (productIdParam) {
+    const parsedProductId = parseInt(productIdParam, 10);
+
+    if (!isNaN(parsedProductId)) {
+      productId = parsedProductId;
+      console.log(productId);
+      // setProductId(parsedProductId);
+    } else {
+      console.error("Invalid productId in URL:", productIdParam);
+      // Handle the error (e.g., redirect, display a message)
+    }
+  }
 
   if (token) {
     decodedToken = jwtDecode<tokenType>(token)
@@ -246,19 +262,11 @@ export default function ProductImages() {
   }
 
   useEffect(() => {
-    if (errors.productId) toastNotification("Invalid Product Id", errors.productId);
     if (errors.files) toastNotification("Invalid Image Files", errors.files);
   }, [errors]);
 
   return (
     <div className="w-full max-w-2xl mx-auto p-4">
-      <Input
-        type="number"
-        placeholder="Product ID"
-        value={productId}
-        onChange={(e) => setProductId(e.target.value)}
-        className="mb-4"
-      />
       <Card
         className={`border-2 border-dashed p-6 ${isDragging
           ? "border-primary bg-primary/5"
@@ -298,7 +306,7 @@ export default function ProductImages() {
           </Button>
         </CardContent>
       </Card>
-      <Button onClick={handleSendClick} className="mt-3 mr-2">
+      <Button onClick={handleSendClick} disabled={productId && selectedFiles.length > 0 ? false : true} className="mt-3 mr-2">
         <Upload />Upload Images
       </Button>
 

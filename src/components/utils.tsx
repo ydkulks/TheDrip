@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { X } from 'lucide-react'
 import { jwtDecode } from "jwt-decode";
-import { ApiResponse } from "./types";
+import { ApiResponse, Product } from "./types";
 
 export function getCurrentTime(): string {
   const currentTime = new Date();
@@ -195,4 +195,35 @@ export async function getData(
     toastNotification("Error submitting form", getCurrentTime())
     return { content: [], page: { size: 0, number: 0, totalElements: 0, totalPages: 0 } };
   }
+}
+
+export async function getProduct(productId: number): Promise<Product | null> {
+  let url = `http://localhost:8080/api/product?id=${productId}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data: Product = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    toastNotification("Failed to fetch products", getCurrentTime())
+    return null;
+  }
+}
+
+export const emptyProduct: Product = {
+  productId: 0,
+  productName: "Product Name",
+  productDescription: "Product Description",
+  productPrice: 0,
+  productStock: 0,
+  seriesName: "Series Name",
+  categoryName: "Category Name",
+  sellerName: "Seller Name",
+  images: ["https://placehold.co/100x100"],
+  sizes: ["small", "medium", "large", "extra_large", "double_extra_large"],
+  colors: ["original"],
 }

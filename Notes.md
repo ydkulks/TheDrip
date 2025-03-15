@@ -15,14 +15,23 @@
         - [ ] Logout
         - [ ] Update user info
         - [ ] Password reset
-    - [x] Create or Update product
-        - [x] UI
-        - [x] Validation
-        - [x] Sync dropdown and checkbox with DB values
-        - [x] Request to create new product
-        - [x] Get token and userId from JWT
-        - [x] Upload product images
     - [ ] Seller features
+        - [ ] Create product
+            - [x] UI
+            - [x] Validation
+            - [x] Sync dropdown and checkbox with DB values
+            - [x] Request to create new product
+            - [x] Get token and userId from JWT
+            - [x] Upload product images
+            - [ ] Upload product images (Bulk)
+            - [x] Create products (Bulk)
+        - [ ] Update products
+            - [ ] UI
+            - [ ] Validation
+            - [ ] Sync dropdown and checkbox with DB values
+            - [ ] Request to create new product
+            - [ ] Update product images (Bulk)
+            - [ ] Update products (Bulk)
         - [ ] List products
             - [x] Request for data
             - [x] Table of products
@@ -40,9 +49,8 @@
                 - [x] Create new product
                 - [x] Copy selected product ID
                 - [ ] Updated selected products
-                - [x] Delete selected products
-        - [ ] Update products
-        - [x] Delete products
+                - [x] Delete selected products (Single)
+                - [x] Delete selected products (Bulk)
     - [ ] Customer features
         - [ ] Shop products
             - [x] Basic UI

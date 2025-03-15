@@ -29,7 +29,7 @@ import {
 import { columns } from "./columns"; // Import the columns
 import { Product } from "@/components/types"; // Import types
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ClipboardPlus, Columns, Filter, Plus, Search, SquarePen, Trash } from "lucide-react";
+import { ChevronDown, ClipboardPlus, Columns, Filter, Images, Plus, Search, SquarePen, Trash } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -254,7 +254,7 @@ export default function ProductList() {
   // Context Menu
   const navigate = useNavigate();
   const handleNewProduct = () => {
-    navigate('/profile/productdetails', { replace: true });
+    navigate('/profile/product_details', { replace: true });
   };
 
   const handleCopyProductId = () => {
@@ -274,11 +274,20 @@ export default function ProductList() {
   const handleUpdateProduct = () => {
     const rows = table.getSelectedRowModel().flatRows.map((row) => row.original.productId)
     if (rows.length === 1) {
-      navigate(`/profile/productdetails?id=${rows}`, { replace: true });
-      toastNotification("Update product", getCurrentTime());
+      navigate(`/profile/product_details?productId=${rows}`, { replace: true });
     }
     if (rows.length > 1) {
       toastNotification("Cannot update more then one product at a time", getCurrentTime());
+    }
+  };
+
+  const handleUploadImages = () => {
+    const rows = table.getSelectedRowModel().flatRows.map((row) => row.original.productId)
+    if (rows.length === 1) {
+      navigate(`/profile/productImages?productId=${rows}`, { replace: true });
+    }
+    if (rows.length > 1) {
+      toastNotification("Cannot upload for more then one product at a time", getCurrentTime());
     }
   };
 
@@ -621,6 +630,14 @@ export default function ProductList() {
             <SquarePen size={16} />
             Update Selected
             <ContextMenuShortcut>⌘E</ContextMenuShortcut>
+          </ContextMenuItem>
+          <ContextMenuItem
+            disabled={table.getFilteredSelectedRowModel().rows.length >= 1 ? false : true}
+            onClick={handleUploadImages}
+            className="gap-2">
+            <Images size={16} />
+            Upload Images
+            <ContextMenuShortcut>⌘I</ContextMenuShortcut>
           </ContextMenuItem>
           <ContextMenuItem
             disabled={table.getFilteredSelectedRowModel().rows.length >= 1 ? false : true}

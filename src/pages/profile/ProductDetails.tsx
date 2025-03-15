@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-// import { jwtDecode } from "jwt-decode";
 // Form validation
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -25,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ProductUploader } from "@/components/product-uploader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ProductFormInputs {
   productName: string;
@@ -41,7 +42,7 @@ interface ProductFormInputs {
 // Get token from JWT
 const token = localStorage.getItem("token");
 
-async function productFormData(data: object, url: string) {
+async function productFormData(data: ProductFormInputs[], url: string) {
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -114,7 +115,7 @@ interface ProductSize {
 // Default value
 var jsonData: JsonData = {
   "categories": [{ "categoryId": 1, "categoryName": "short_sleeve_tees" }, { "categoryId": 2, "categoryName": "long_sleeve_tees" }, { "categoryId": 3, "categoryName": "button_down_shirt" }, { "categoryId": 4, "categoryName": "hoodies" }, { "categoryId": 5, "categoryName": "cargos" }, { "categoryId": 6, "categoryName": "shorts" }, { "categoryId": 7, "categoryName": "sweat_pants" }, { "categoryId": 8, "categoryName": "tops" }, { "categoryId": 9, "categoryName": "bottoms" }, { "categoryId": 10, "categoryName": "bomber_jackets" }],
-  "series": [{ "series_id": 1, "series_name": "Cyberpunk: Edgerunners" },{ "series_id": 2, "series_name": "Dragon Ball Super: Super Hero" }],
+  "series": [{ "series_id": 1, "series_name": "Cyberpunk: Edgerunners" }, { "series_id": 2, "series_name": "Dragon Ball Super: Super Hero" }],
   "sizes": [{ "size_id": 1, "size_name": "small" }, { "size_id": 2, "size_name": "medium" }, { "size_id": 3, "size_name": "large" }, { "size_id": 4, "size_name": "extra_large" }, { "size_id": 5, "size_name": "double_extra_large" }],
   "colors": [{ "color_id": 1, "color_name": "original" }, { "color_id": 2, "color_name": "white" }, { "color_id": 3, "color_name": "black" }]
 }
@@ -215,6 +216,38 @@ const productSchema = yup.object().shape({
 });
 
 const ProductCreationForm = () => {
+  // NOTE: Update product: Initializing states and variables
+  // const [searchParams] = useSearchParams();
+  // const productIdParam = searchParams.get('productId');
+  // const [data, setData] = useState<Product>(emptyProduct);
+  // let productId: number | null = null;
+
+  // if (productIdParam) {
+  //   const parsedProductId = parseInt(productIdParam, 10);
+
+  //   if (!isNaN(parsedProductId)) {
+  //     productId = parsedProductId;
+  //   } else {
+  //     console.error("Invalid productId in URL:", productIdParam);
+  //     // Handle the error (e.g., redirect, display a message)
+  //   }
+  // }
+  // // NOTE: Update product: Fetching product details
+  // useEffect(() => {
+  //   const fetchData = async (pid: number) => {
+  //     try {
+  //       const apiResponse = await getProduct(pid);
+  //       setData(apiResponse as Product);
+  //     } catch (error) {
+  //       console.error("Failed to fetch total pages:", error);
+  //     }
+  //   };
+
+  //   if (typeof productId === "number") {
+  //     const pid: number = productId;
+  //     fetchData(pid);
+  //   }
+  // }, [productId]);
   const {
     control,
     register,
@@ -223,8 +256,7 @@ const ProductCreationForm = () => {
     watch,
     formState: { errors },
   } = useForm<ProductFormInputs>({
-    resolver: yupResolver(productSchema),
-    defaultValues: { productColors: ["Original"], productSizes: ["Small"] },
+    resolver: yupResolver(productSchema), defaultValues: { productColors: ["Original"], productSizes: ["Small"] },
   });
 
   const onSubmit: SubmitHandler<ProductFormInputs> = (data) => {
@@ -243,11 +275,10 @@ const ProductCreationForm = () => {
     // Get user id from JWT
     dataToSubmit.userId = tokenDetails()?.id;
     // WARN: Backend URL
-    const url = "http://localhost:8080/seller/product";
-    console.log(dataToSubmit);
-    productFormData(dataToSubmit, url)
-      .then((response) => {
-        console.log(response);
+    const url = "http://localhost:8080/seller/products";
+    productFormData([dataToSubmit], url)
+      .then((_response) => {
+        // console.log(response);
       })
       .catch((error) => {
         console.error(error);
@@ -291,145 +322,154 @@ const ProductCreationForm = () => {
   const [categories, _setCategories] = useState(Object.keys(categoryMap));
   const [series, _setSeries] = useState(Object.keys(seriesMap));
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Create New Product</CardTitle>
-            <CardDescription>
-              Enter product details for creating your new product.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="productName">Product Name*</Label>
-                  <Input
-                    id="productName"
-                    type="text"
-                    {...register("productName")}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="productDescription">
-                    Product Description*
-                  </Label>
-                  <Textarea
-                    id="productDescription"
-                    placeholder="Product description..."
-                    {...register("productDescription")}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="productSizes">Sizes*</Label>
-                  <div className="">
-                    {productSizes.map((size) => (
-                      <div key={size.size_name} className="flex items-center space-x-2 m-2">
-                        <Checkbox
-                          id={size.size_name}
-                          checked={watch("productSizes")?.includes(size.size_name)}
-                          onCheckedChange={(checked) =>
-                            handleSizeChange(size.size_name, checked)
-                          }
-                        />
-                        <Label htmlFor={size.size_name}>{size.size_name}</Label>
+    <div className="flex w-full items-center justify-center p-6 md:p-10">
+      <Tabs defaultValue="create" className="w-full">
+        <TabsList>
+          <TabsTrigger value="create">Create Product</TabsTrigger>
+          <TabsTrigger value="upload">Upload Products</TabsTrigger>
+        </TabsList>
+        <TabsContent value="create">
+          <div className="w-full inline-flex justify-center">
+            <Card className="w-full max-w-3xl">
+              <CardHeader>
+                <CardTitle className="text-2xl">Create New Product</CardTitle>
+                <CardDescription>
+                  Enter product details for creating your new product.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div className="flex flex-col gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="productName">Product Name*</Label>
+                      <Input
+                        id="productName"
+                        type="text"
+                        {...register("productName")}
+                        required
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="productDescription">
+                        Product Description*
+                      </Label>
+                      <Textarea
+                        id="productDescription"
+                        placeholder="Product description..."
+                        {...register("productDescription")}
+                        required
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="productSizes">Sizes*</Label>
+                      <div className="">
+                        {productSizes.map((size) => (
+                          <div key={size.size_name} className="flex items-center space-x-2 m-2">
+                            <Checkbox
+                              id={size.size_name}
+                              checked={watch("productSizes")?.includes(size.size_name)}
+                              onCheckedChange={(checked) =>
+                                handleSizeChange(size.size_name, checked)
+                              }
+                            />
+                            <Label htmlFor={size.size_name}>{size.size_name}</Label>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="productColors">Colors*</Label>
-                  <div className="">
-                    {productColors.map((color) => (
-                      <div key={color.color_name} className="flex items-center space-x-2 m-2">
-                        <Checkbox
-                          id={color.color_name}
-                          checked={watch("productColors")?.includes(color.color_name)}
-                          onCheckedChange={(checked) =>
-                            handleColorChange(color.color_name, checked)
-                          }
-                        />
-                        <Label htmlFor={color.color_name}>{color.color_name}</Label>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="productColors">Colors*</Label>
+                      <div className="">
+                        {productColors.map((color) => (
+                          <div key={color.color_name} className="flex items-center space-x-2 m-2">
+                            <Checkbox
+                              id={color.color_name}
+                              checked={watch("productColors")?.includes(color.color_name)}
+                              onCheckedChange={(checked) =>
+                                handleColorChange(color.color_name, checked)
+                              }
+                            />
+                            <Label htmlFor={color.color_name}>{color.color_name}</Label>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="categoryId">Category*</Label>
-                  <Controller
-                    name="categoryId"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue>
-                            {field.value || "Select category"}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="seriesId">Series*</Label>
-                  <Controller
-                    name="seriesId"
-                    control={control}
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger>
-                          <SelectValue> {field.value || "Select series"} </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {series.map((seriesName) => (
-                            <SelectItem key={seriesName} value={seriesName}>
-                              {seriesName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="productPrice">Price*</Label>
-                  <Input
-                    id="productPrice"
-                    type="number"
-                    step="0.01"
-                    {...register("productPrice", { valueAsNumber: true })}
-                    required
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="productStock">Stock*</Label>
-                  <Input
-                    id="productStock"
-                    type="number"
-                    {...register("productStock", { valueAsNumber: true })}
-                    required
-                  />
-                </div>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="categoryId">Category*</Label>
+                      <Controller
+                        name="categoryId"
+                        control={control}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value || "Select category"}>
+                            <SelectTrigger>
+                              <SelectValue>
+                                {field.value || "Select category"}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <SelectItem key={category} value={category}>
+                                  {category}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="seriesId">Series*</Label>
+                      <Controller
+                        name="seriesId"
+                        control={control}
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value || "Select series"}>
+                            <SelectTrigger>
+                              <SelectValue> {field.value || "Select series"} </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {series.map((seriesName) => (
+                                <SelectItem key={seriesName} value={seriesName}>
+                                  {seriesName}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="productPrice">Price*</Label>
+                      <Input
+                        id="productPrice"
+                        type="number"
+                        step="0.01"
+                        {...register("productPrice", { valueAsNumber: true })}
+                        required
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="productStock">Stock*</Label>
+                      <Input
+                        id="productStock"
+                        type="number"
+                        {...register("productStock", { valueAsNumber: true })}
+                        required
+                      />
+                    </div>
 
-                <div className="flex gap-2">
-                  <Button type="submit" className="w-full"> Submit </Button>
-                  <Button type="reset" className="w-full"> Reset </Button>
-                </div>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+                    <div className="flex gap-2">
+                      <Button type="reset" variant="outline" className="w-full"> Reset </Button>
+                      <Button type="submit" className="w-full"> Submit </Button>
+                    </div>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        <TabsContent value="upload"> <ProductUploader /></TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -4,41 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { formatName, formatSize, getCurrentTime, toastNotification } from "@/components/utils";
+import { emptyProduct, formatName, formatSize, getProduct, toastNotification } from "@/components/utils";
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-
-async function getProduct(productId: number): Promise<Product | null> {
-  let url = `http://localhost:8080/api/product?id=${productId}`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const data: Product = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Failed to fetch products:", error);
-    toastNotification("Failed to fetch products", getCurrentTime())
-    return null;
-  }
-}
-
-const emptyProduct: Product = {
-  productId: 0,
-  productName: "Product Name",
-  productDescription: "Product Description",
-  productPrice: 0,
-  productStock: 0,
-  seriesName: "Series Name",
-  categoryName: "Category Name",
-  sellerName: "Seller Name",
-  images: ["https://placehold.co/100x100"],
-  sizes: ["small", "medium", "large", "extra_large", "double_extra_large"],
-  colors: ["original"],
-}
 
 const ViewProduct = () => {
   const [searchParams] = useSearchParams();
@@ -109,7 +78,7 @@ const ViewProduct = () => {
   return (
     <>
       {data ? (
-        <div className="mx-[10%]">
+        <div className="mx-[10%] my-8">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Product Images */}
             <div className="space-y-4">
