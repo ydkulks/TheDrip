@@ -14,6 +14,8 @@ import { jwtDecode } from "jwt-decode"
 import * as yup from "yup"
 import { toastNotification } from "@/components/utils"
 import { useSearchParams } from "react-router-dom"
+import BulkUploadPage from "@/components/bulk-image-upload"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type FileStatus = "idle" | "uploading" | "success" | "error"
 
@@ -266,110 +268,121 @@ export default function ProductImages() {
   }, [errors]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4">
-      <Card
-        className={`border-2 border-dashed p-6 ${isDragging
-          ? "border-primary bg-primary/5"
-          : "border-muted-foreground/25"
-          }`}
-      >
-        <CardContent
-          className="flex flex-col items-center justify-center gap-4 p-0"
-          onDragEnter={handleDragEnter}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileInputChange}
-            className="hidden"
-            multiple
-          />
+    <Tabs defaultValue="uploadImage" className="w-full">
+      <TabsList>
+        <TabsTrigger value="uploadImage">Upload Images</TabsTrigger>
+        <TabsTrigger value="bulkUploadImages">Bulk Upload Images</TabsTrigger>
+      </TabsList>
+      <TabsContent value="uploadImage">
+        <div className="w-full max-w-2xl mx-auto p-4">
+          <Card
+            className={`border-2 border-dashed p-6 ${isDragging
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25"
+              }`}
+          >
+            <CardContent
+              className="flex flex-col items-center justify-center gap-4 p-0"
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileInputChange}
+                className="hidden"
+                multiple
+              />
 
-          <div className="flex flex-col items-center justify-center text-center">
-            <UploadCloud
-              className={`h-12 w-12 mb-4 ${isDragging ? "text-primary" : "text-muted-foreground"
-                }`}
-            />
-            <h3 className="text-lg font-semibold">
-              {isDragging ? "Drop files here" : "Drag & drop files here"}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              or click to browse files from your computer
-            </p>
-          </div>
-
-          <Button variant="outline" onClick={handleButtonClick} className="mt-2">
-            Select Files
-          </Button>
-        </CardContent>
-      </Card>
-      <Button onClick={handleSendClick} disabled={productId && selectedFiles.length > 0 ? false : true} className="mt-3 mr-2">
-        <Upload />Upload Images
-      </Button>
-
-      {files.length > 0 && (
-        <div className="mt-6 space-y-4">
-          <h3 className="text-lg font-semibold">Uploaded Files</h3>
-          <div className="space-y-3">
-            {files.map((fileItem) => (
-              <div
-                key={fileItem.id}
-                className="flex items-center p-3 border rounded-lg bg-card"
-              >
-                <div className="mr-3">
-                  <FileText className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <div className="truncate pr-4">
-                      <p className="text-sm font-medium truncate">
-                        {fileItem.file.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatFileSize(fileItem.file.size)}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => removeFile(fileItem.id)}
-                      className="text-muted-foreground hover:text-foreground"
-                      aria-label="Remove file"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  {fileItem.status === "uploading" && (
-                    <div className="mt-2">
-                      <Progress value={fileItem.progress} className="h-1" />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Uploading: {fileItem.progress}%
-                      </p>
-                    </div>
-                  )}
-
-                  {fileItem.status === "success" && (
-                    <div className="flex items-center mt-1 text-xs text-green-600">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      <span>Upload complete</span>
-                    </div>
-                  )}
-
-                  {fileItem.status === "error" && (
-                    <div className="flex items-center mt-1 text-xs text-red-600">
-                      <AlertCircle className="h-3 w-3 mr-1" />
-                      <span>{fileItem.error}</span>
-                    </div>
-                  )}
-                </div>
+              <div className="flex flex-col items-center justify-center text-center">
+                <UploadCloud
+                  className={`h-12 w-12 mb-4 ${isDragging ? "text-primary" : "text-muted-foreground"
+                    }`}
+                />
+                <h3 className="text-lg font-semibold">
+                  {isDragging ? "Drop files here" : "Drag & drop files here"}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  or click to browse files from your computer
+                </p>
               </div>
-            ))}
-          </div>
+
+              <Button variant="outline" onClick={handleButtonClick} className="mt-2">
+                Select Files
+              </Button>
+            </CardContent>
+          </Card>
+          <Button onClick={handleSendClick} disabled={productId && selectedFiles.length > 0 ? false : true} className="mt-3 mr-2">
+            <Upload />Upload Images
+          </Button>
+
+          {files.length > 0 && (
+            <div className="mt-6 space-y-4">
+              <h3 className="text-lg font-semibold">Uploaded Files</h3>
+              <div className="space-y-3">
+                {files.map((fileItem) => (
+                  <div
+                    key={fileItem.id}
+                    className="flex items-center p-3 border rounded-lg bg-card"
+                  >
+                    <div className="mr-3">
+                      <FileText className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <div className="truncate pr-4">
+                          <p className="text-sm font-medium truncate">
+                            {fileItem.file.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(fileItem.file.size)}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => removeFile(fileItem.id)}
+                          className="text-muted-foreground hover:text-foreground"
+                          aria-label="Remove file"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {fileItem.status === "uploading" && (
+                        <div className="mt-2">
+                          <Progress value={fileItem.progress} className="h-1" />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Uploading: {fileItem.progress}%
+                          </p>
+                        </div>
+                      )}
+
+                      {fileItem.status === "success" && (
+                        <div className="flex items-center mt-1 text-xs text-green-600">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          <span>Upload complete</span>
+                        </div>
+                      )}
+
+                      {fileItem.status === "error" && (
+                        <div className="flex items-center mt-1 text-xs text-red-600">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          <span>{fileItem.error}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </TabsContent>
+      <TabsContent value="bulkUploadImages">
+        <BulkUploadPage />
+      </TabsContent>
+    </Tabs>
   )
 }
 

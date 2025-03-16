@@ -7,7 +7,7 @@ import { FileUploader } from "./file-uploader"
 import { JsonPreview } from "./json-preview"
 import { IdMappingGuide } from "./id-mapping-guide"
 import { AlertCircle, CheckCircle2, Download, Upload } from "lucide-react"
-import * as Yup from "yup"
+import * as yup from "yup"
 import { getCurrentTime, toastNotification, tokenDetails } from "./utils"
 
 interface ProductType {
@@ -36,19 +36,19 @@ const templateData: ProductType[] = [
   }
 ]
 
-const productSchema = Yup.object({
-  productName: Yup.string().required(),
-  categoryId: Yup.number().required(),
+const productSchema = yup.object({
+  productName: yup.string().required(),
+  categoryId: yup.number().required(),
   // userId: Yup.number(), // Add userId from token
-  seriesId: Yup.number().required(),
-  productPrice: Yup.number().required(),
-  productDescription: Yup.string().required(),
-  productStock: Yup.number().required(),
-  productSizes: Yup.array().of(Yup.number()).required(),
-  productColors: Yup.array().of(Yup.number()).required(),
+  seriesId: yup.number().required(),
+  productPrice: yup.number().required(),
+  productDescription: yup.string().required(),
+  productStock: yup.number().required(),
+  productSizes: yup.array().of(yup.number()).required(),
+  productColors: yup.array().of(yup.number()).required(),
 })
 
-const productArraySchema = Yup.array().of(productSchema)
+const productArraySchema = yup.array().of(productSchema)
 
 async function uploadProducts(products: any) {
   const token = localStorage.getItem("token");

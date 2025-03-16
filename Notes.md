@@ -23,7 +23,9 @@
             - [x] Request to create new product
             - [x] Get token and userId from JWT
             - [x] Upload product images
-            - [ ] Upload product images (Bulk)
+            - [x] Upload product images (Bulk)
+            - [ ] Get productIds from search param to fetch selected products from list
+            - [ ] Delete images (Bulk)
             - [x] Create products (Bulk)
         - [ ] Update products
             - [ ] UI
@@ -49,6 +51,8 @@
                 - [x] Create new product
                 - [x] Copy selected product ID
                 - [ ] Updated selected products
+                - [x] Upload images(single)
+                - [ ] Manage images for selected products(bulk)
                 - [x] Delete selected products (Single)
                 - [x] Delete selected products (Bulk)
     - [ ] Customer features

@@ -284,7 +284,7 @@ export default function ProductList() {
   const handleUploadImages = () => {
     const rows = table.getSelectedRowModel().flatRows.map((row) => row.original.productId)
     if (rows.length === 1) {
-      navigate(`/profile/productImages?productId=${rows}`, { replace: true });
+      navigate(`/profile/product_images?productId=${rows}`, { replace: true });
     }
     if (rows.length > 1) {
       toastNotification("Cannot upload for more then one product at a time", getCurrentTime());
