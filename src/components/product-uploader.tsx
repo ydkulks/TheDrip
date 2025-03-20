@@ -172,7 +172,7 @@ export function ProductUploader() {
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between">
           <div>
-            <CardTitle className="text-2xl">JSON Product Upload</CardTitle>
+            <CardTitle className="text-xl">JSON Product Upload</CardTitle>
             <CardDescription>
               Upload a JSON file with product details to create multiple products at once.
             </CardDescription>

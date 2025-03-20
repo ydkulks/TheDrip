@@ -29,7 +29,7 @@ import {
 import { columns } from "./columns"; // Import the columns
 import { Product } from "@/components/types"; // Import types
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ClipboardPlus, Columns, Filter, Images, Plus, Search, SquarePen, Trash } from "lucide-react";
+import { ChevronDown, ClipboardPlus, Columns, Ellipsis, Filter, Images, Plus, Search, SquarePen, Trash } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -55,6 +55,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useGrabScroll } from "@/components/hooks/use-grab-scroll";
 
 async function deleteProduct(id: number[]) {
   const token = localStorage.getItem("token");
@@ -107,6 +108,8 @@ export default function ProductList() {
   const [filterOpen, setFilterOpen] = useState(false);
   const IMG_COUNT = null;
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [isGrabMode, setIsGrabMode] = useState(false)
+  const tableContainerRef = React.useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -234,6 +237,33 @@ export default function ProductList() {
     setFilterOpen(false);
   }
 
+  const { containerProps } = useGrabScroll({
+    ref: tableContainerRef,
+    isGrabMode,
+  })
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !e.repeat) {
+        e.preventDefault() // Prevent default space bar scrolling
+        setIsGrabMode(true)
+      }
+    }
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        e.preventDefault() // Prevent default space bar scrolling
+        setIsGrabMode(false)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown, { passive: false })
+    window.addEventListener("keyup", handleKeyUp, { passive: false })
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("keyup", handleKeyUp)
+    }
+  }, [isGrabMode])
 
   const table = useReactTable({
     data,
@@ -560,53 +590,66 @@ export default function ProductList() {
       {/*<ContextMenu open={!!selectedRow} onOpenChange={() => setSelectedRow(null)}>*/}
       <ContextMenu>
         <ContextMenuTrigger>
-          <Card className="m-2 overflow-y-scroll">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => {
-                    return (
-                      <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                        {row.getVisibleCells().map((cell) => {
+          <Card className="m-2">
+            <div
+              ref={tableContainerRef}
+              {...containerProps}
+              className={`overflow-auto max-h-[600px] ${isGrabMode ? "cursor-grab active:cursor-grabbing select-none" : ""}`}
+              style={{
+                overflowX: "auto", // Ensure horizontal scrolling is enabled
+                width: "100%", // Take full width
+                // position: "relative",
+              }}
+            >
+              <div style={{ minWidth: "max-content" }}>
+                <Table>
+                  <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
                           return (
-                            <TableCell key={cell.id}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
+                            <TableHead key={header.id}>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
+                            </TableHead>
                           );
                         })}
                       </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                      table.getRowModel().rows.map((row) => {
+                        return (
+                          <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                            {row.getVisibleCells().map((cell) => {
+                              return (
+                                <TableCell key={cell.id}>
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={columns.length}
+                          className="h-24 text-center"
+                        >
+                          No results.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </Card>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-64">
