@@ -15,7 +15,6 @@ import * as yup from "yup"
 import { toastNotification } from "@/components/utils"
 import { useSearchParams } from "react-router-dom"
 import BulkUploadPage from "@/components/bulk-image-upload"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type FileStatus = "idle" | "uploading" | "success" | "error"
 
@@ -46,9 +45,9 @@ const ACCEPTED_IMAGE_TYPES = [
 
 const validationSchema = yup.object().shape({
   productId: yup
-    .number()
-    .positive("Product ID must be a positive number")
-    .required("Product ID is required"),
+    .array()
+    .of(yup.number().positive("Product ID must be a positive number"))
+    .min(1, "At least one Product ID is required"),
   files: yup
     .array()
     .of(
@@ -83,19 +82,24 @@ export default function ProductImages() {
   }>({})
   const [searchParams] = useSearchParams();
   const productIdParam = searchParams.get('productId');
-  let productId: number | null = null;
+  let productId: number[] = [];
 
   if (productIdParam) {
-    const parsedProductId = parseInt(productIdParam, 10);
+    // const parsedProductId = parseInt(productIdParam, 10);
+    productId = productIdParam
+      .split(",")
+      .map(id => parseInt(id, 10))
+      .filter(id => !isNaN(id));
+    console.log(productIdParam, productId);
 
-    if (!isNaN(parsedProductId)) {
-      productId = parsedProductId;
-      console.log(productId);
-      // setProductId(parsedProductId);
-    } else {
-      console.error("Invalid productId in URL:", productIdParam);
-      // Handle the error (e.g., redirect, display a message)
-    }
+    // if (!isNaN(parsedProductId)) {
+    //   productId = parsedProductId;
+    //   console.log(productId);
+    //   // setProductId(parsedProductId);
+    // } else {
+    //   console.error("Invalid productId in URL:", productIdParam);
+    //   // Handle the error (e.g., redirect, display a message)
+    // }
   }
 
   if (token) {
@@ -145,7 +149,7 @@ export default function ProductImages() {
       formData.append("file", file) // Append each file to the FormData
 
       fetch(
-        `http://localhost:8080/seller/${username}/${productId}/image`,
+        `http://localhost:8080/seller/${username}/${productId[0]}/image`,
         {
           method: "POST",
           headers: {
@@ -268,12 +272,9 @@ export default function ProductImages() {
   }, [errors]);
 
   return (
-    <Tabs defaultValue="uploadImage" className="w-full">
-      <TabsList>
-        <TabsTrigger value="uploadImage">Upload Images</TabsTrigger>
-        <TabsTrigger value="bulkUploadImages">Bulk Upload Images</TabsTrigger>
-      </TabsList>
-      <TabsContent value="uploadImage">
+    <>
+      {productId.length < 1 ? <p> Product ID Not found!</p> : null}
+      {productId.length === 1 ? (
         <div className="w-full max-w-2xl mx-auto p-4">
           <Card
             className={`border-2 border-dashed p-6 ${isDragging
@@ -314,7 +315,7 @@ export default function ProductImages() {
               </Button>
             </CardContent>
           </Card>
-          <Button onClick={handleSendClick} disabled={productId && selectedFiles.length > 0 ? false : true} className="mt-3 mr-2">
+          <Button onClick={handleSendClick} disabled={productId.length === 1 && selectedFiles.length > 0 ? false : true} className="mt-3 mr-2">
             <Upload />Upload Images
           </Button>
 
@@ -377,12 +378,9 @@ export default function ProductImages() {
               </div>
             </div>
           )}
-        </div>
-      </TabsContent>
-      <TabsContent value="bulkUploadImages">
-        <BulkUploadPage />
-      </TabsContent>
-    </Tabs>
+        </div>) : (null)}
+      {productId.length > 1 ? <BulkUploadPage productIds={productId} /> : null}
+    </>
   )
 }
 

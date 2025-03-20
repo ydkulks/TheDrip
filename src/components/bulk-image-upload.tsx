@@ -9,8 +9,9 @@ import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getData, tokenDetails } from "./utils"
+import { getProductsById, tokenDetails } from "./utils"
 import { ApiResponse } from "./types"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "./ui/pagination"
 
 interface ExistingImage {
   id: string
@@ -33,7 +34,11 @@ interface UploadStatus {
   message?: string
 }
 
-export default function BulkUploadPage() {
+interface BulkUploadProps {
+  productIds: number[];
+}
+
+export default function BulkUploadPage({ productIds }: BulkUploadProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
   const [uploadStatus, setUploadStatus] = useState<UploadStatus[]>([])
@@ -42,6 +47,8 @@ export default function BulkUploadPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     // Get username from token
@@ -54,8 +61,40 @@ export default function BulkUploadPage() {
       console.error("Error getting token details:", error)
     }
 
-    // In a real application, you would fetch products from your API
-    // This is just a mock implementation
+    const fetchSellerProducts = async (): Promise<Product[]> => {
+      try {
+        const token = localStorage.getItem("token")
+        if (!token) {
+          throw new Error("Authentication token not found. Please log in again.")
+        }
+
+        const response: ApiResponse | null = await getProductsById(productIds, page)
+
+        if (!response || !response.content) {
+          throw new Error("No product data received from API")
+        }
+
+        setTotalPages(response.page.totalPages);
+
+        // Convert API product data to the format used in this component
+        const formattedProducts: Product[] = response.content.map((apiProduct) => ({
+          id: `prod-${apiProduct.productId}`,
+          name: apiProduct.productName,
+          existingImages: apiProduct.images.map((url, index) => ({
+            id: `img-<span class="math-inline">\{apiProduct\.productId\}\-</span>{index}`,
+            url: url,
+            filename: `product${apiProduct.productId}_image${index + 1}.jpg`,
+          })),
+          newImages: [],
+          imagesToDelete: [],
+        }))
+
+        return formattedProducts
+      } catch (error) {
+        console.error("Error fetching seller products:", error)
+        throw error
+      }
+    }
     fetchSellerProducts()
       .then((data) => {
         setProducts(data)
@@ -65,66 +104,7 @@ export default function BulkUploadPage() {
         console.error("Error fetching products:", error)
         setIsLoading(false)
       })
-  }, [])
-
-  const fetchSellerProducts = async (): Promise<Product[]> => {
-    try {
-      const token = localStorage.getItem("token")
-      if (!token) {
-        throw new Error("Authentication token not found. Please log in again.")
-      }
-
-      const response: ApiResponse = await getData(
-        tokenDetails().id, 0,"",[],[],null,[],[],null,0,100
-      )
-
-      if (!response || !response.content) {
-        throw new Error("No product data received from API")
-      }
-
-      // Convert API product data to the format used in this component
-      const formattedProducts: Product[] = response.content.map((apiProduct) => ({
-        id: `prod-${apiProduct.productId}`,
-        name: apiProduct.productName,
-        existingImages: apiProduct.images.map((url, index) => ({
-          id: `img-<span class="math-inline">\{apiProduct\.productId\}\-</span>{index}`,
-          url: url,
-          filename: `product${apiProduct.productId}_image${index + 1}.jpg`,
-        })),
-        newImages: [],
-        imagesToDelete: [],
-      }))
-
-      return formattedProducts
-    } catch (error) {
-      console.error("Error fetching seller products:", error)
-      throw error
-    }
-  }
-
-  // // Mock function to fetch seller's products with existing images
-  // const fetchSellerProducts = async (): Promise<Product[]> => {
-  //   // Simulate API delay
-  //   await new Promise((resolve) => setTimeout(resolve, 500))
-
-  //   // Return mock data - in a real app, this would be your API response
-  //   return Array.from({ length: 15 }, (_, i) => {
-  //     // Randomly assign 0-4 existing images to some products
-  //     const numExistingImages = Math.random() > 0.3 ? Math.floor(Math.random() * 5) : 0
-
-  //     return {
-  //       id: `prod-${i + 1}`,
-  //       name: `Product ${i + 1}`,
-  //       existingImages: Array.from({ length: numExistingImages }, (_, j) => ({
-  //         id: `img-${i}-${j}`,
-  //         url: `/placeholder.svg?height=300&width=300&text=Product${i + 1}_Image${j + 1}`,
-  //         filename: `product${i + 1}_image${j + 1}.jpg`,
-  //       })),
-  //       newImages: [],
-  //       imagesToDelete: [],
-  //     }
-  //   })
-  // }
+  }, [page])
 
   const handleProductSelect = (product: Product) => {
     if (selectedProducts.some((p) => p.id === product.id)) {
@@ -230,105 +210,7 @@ export default function BulkUploadPage() {
   const hasChanges = (product: Product) => {
     return product.newImages.length > 0 || product.imagesToDelete.length > 0
   }
-
-  /*
   const uploadImages = async () => {
-    if (!username) {
-      alert("Username not found. Please log in again.")
-      return
-    }
-
-    // Get token from localStorage
-    const token = localStorage.getItem("token")
-    if (!token) {
-      alert("Authentication token not found. Please log in again.")
-      return
-    }
-
-    setIsUploading(true)
-
-    // Initialize upload status for each product with changes
-    const productsWithChanges = selectedProducts.filter(hasChanges)
-    const initialStatus: UploadStatus[] = productsWithChanges.map((product) => ({
-      productId: product.id,
-      status: "idle",
-      progress: 0,
-    }))
-    setUploadStatus(initialStatus)
-
-    // Upload images for each product with changes
-    for (const product of productsWithChanges) {
-      // Update status to uploading
-      setUploadStatus((prev) =>
-        prev.map((status) =>
-          status.productId === product.id ? { ...status, status: "uploading", progress: 10 } : status,
-        ),
-      )
-
-      try {
-        const formData = new FormData()
-
-        // Add each new image to form data with the product ID as the key
-        for (const image of product.newImages) {
-          formData.append(product.id, image)
-        }
-
-        // Add list of images to delete (if any)
-        if (product.imagesToDelete.length > 0) {
-          // In a real implementation, you might need to adjust how you send this information
-          // depending on your API requirements
-          formData.append("imagesToDelete", JSON.stringify(product.imagesToDelete))
-        }
-
-        // Update progress
-        setUploadStatus((prev) =>
-          prev.map((status) => (status.productId === product.id ? { ...status, progress: 50 } : status)),
-        )
-
-        // Make the API request
-        const response = await fetch(`http://localhost:8080/seller/${username}/product/images`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        })
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`)
-        }
-
-        // Update status to success
-        setUploadStatus((prev) =>
-          prev.map((status) =>
-            status.productId === product.id
-              ? { ...status, status: "success", progress: 100, message: "Upload complete" }
-              : status,
-          ),
-        )
-      } catch (error) {
-        console.error(`Error uploading images for product ${product.id}:`, error)
-
-        // Update status to error
-        setUploadStatus((prev) =>
-          prev.map((status) =>
-            status.productId === product.id
-              ? {
-                ...status,
-                status: "error",
-                progress: 100,
-                message: error instanceof Error ? error.message : "Upload failed",
-              }
-              : status,
-          ),
-        )
-      }
-    }
-
-    setIsUploading(false)
-  }
-  */
-    const uploadImages = async () => {
     if (!username) {
       alert("Username not found. Please log in again.")
       return
@@ -413,11 +295,11 @@ export default function BulkUploadPage() {
           prev.map((status) =>
             status.productId === product.id
               ? {
-                  ...status,
-                  status: "error",
-                  progress: 100,
-                  message: error instanceof Error ? error.message : "Upload failed",
-                }
+                ...status,
+                status: "error",
+                progress: 100,
+                message: error instanceof Error ? error.message : "Upload failed",
+              }
               : status
           )
         )
@@ -441,16 +323,16 @@ export default function BulkUploadPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-2">
+    <div className="p-2">
       <div className="flex flex-col space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Bulk Image Upload</h1>
+          <h1 className="text-xl font-bold">Bulk Image Upload</h1>
           <p className="text-muted-foreground mt-2">
             View, update, and upload images to your products. Maximum 5 images per product.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           <div className="md:col-span-1">
             <Card>
               <CardHeader>
@@ -458,19 +340,19 @@ export default function BulkUploadPage() {
                 <CardDescription>Select products to manage images</CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[400px] pr-4">
+                <ScrollArea className="h-[380px] pr-4">
                   <div className="space-y-2">
                     {products.map((product) => (
                       <div
                         key={product.id}
                         className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedProducts.some((p) => p.id === product.id)
-                            ? "bg-primary/10 border border-primary"
-                            : "border hover:bg-muted"
+                          ? "bg-primary/10 border border-primary"
+                          : "border hover:bg-muted"
                           }`}
                         onClick={() => handleProductSelect(product)}
                       >
                         <div className="flex flex-col">
-                          <span>{product.name}</span>
+                          <span className="text-sm">{product.name}</span>
                           <span className="text-xs text-muted-foreground">
                             {product.existingImages.length} existing image
                             {product.existingImages.length !== 1 ? "s" : ""}
@@ -484,8 +366,36 @@ export default function BulkUploadPage() {
                   </div>
                 </ScrollArea>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex-wrap">
                 <div className="text-sm text-muted-foreground">{selectedProducts.length} products selected</div>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={() => setPage(Math.max(0, page - 1))}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: totalPages }, (_, i) => i).map((index) => (
+                      <PaginationItem key={index}>
+                        <PaginationLink
+                          href="#"
+                          isActive={index === page}
+                          onClick={() => setPage(index)}
+                        >
+                          {index + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+
               </CardFooter>
             </Card>
           </div>
@@ -585,8 +495,8 @@ export default function BulkUploadPage() {
                                               toggleExistingImageDelete(product.id, image.id)
                                             }}
                                             className={`${isMarkedForDeletion
-                                                ? "bg-primary text-primary-foreground opacity-100"
-                                                : "bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100"
+                                              ? "bg-primary text-primary-foreground opacity-100"
+                                              : "bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100"
                                               } rounded-full p-1 transition-opacity`}
                                             disabled={isUploading}
                                           >

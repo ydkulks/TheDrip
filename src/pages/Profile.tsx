@@ -1,4 +1,4 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Routes, Route, Link, useLocation } from "react-router-dom";
 import ProductImages from './profile/ProductImages.tsx'
@@ -7,6 +7,8 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbS
 import ProductList from "./profile/ProductList.tsx";
 import { formatName } from "@/components/utils.tsx";
 import React from "react";
+import ProductUpdate from "./profile/ProductUpdate.tsx";
+import { Separator } from "@/components/ui/separator.tsx";
 
 const Profile = () => {
   const location = useLocation();
@@ -15,10 +17,11 @@ const Profile = () => {
     <>
       <SidebarProvider>
         <AppSidebar />
-        <main className="w-full overflow-hidden">
-          <div className="flex sticky top-0 z-30">
+        <SidebarInset className="overflow-hidden">
+          <div className="flex sticky top-0 z-30 items-center p-2 w-full border-b gap-2">
             <SidebarTrigger />
-            <Breadcrumb className="m-2 p-2 rounded-md bg-white">
+            <Separator orientation="vertical" className="mr-2 h-4"/>
+            <Breadcrumb className="hidden md:block">
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <Link to="/">
@@ -49,7 +52,7 @@ const Profile = () => {
             <Route path="product_details" element={<ProductDetails />} />
             <Route path="product_images" element={<ProductImages />} />
           </Routes>
-        </main>
+        </SidebarInset>
       </SidebarProvider>
     </>
   );

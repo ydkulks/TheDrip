@@ -322,7 +322,7 @@ const ProductCreationForm = () => {
   const [categories, _setCategories] = useState(Object.keys(categoryMap));
   const [series, _setSeries] = useState(Object.keys(seriesMap));
   return (
-    <div className="flex w-full items-center justify-center p-6 md:p-10">
+    <div className="flex w-full items-center justify-center p-2">
       <Tabs defaultValue="create" className="w-full">
         <TabsList>
           <TabsTrigger value="create">Create Product</TabsTrigger>
@@ -332,7 +332,7 @@ const ProductCreationForm = () => {
           <div className="w-full inline-flex justify-center">
             <Card className="w-full max-w-3xl">
               <CardHeader>
-                <CardTitle className="text-2xl">Create New Product</CardTitle>
+                <CardTitle className="text-xl">Create New Product</CardTitle>
                 <CardDescription>
                   Enter product details for creating your new product.
                 </CardDescription>
@@ -362,9 +362,9 @@ const ProductCreationForm = () => {
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="productSizes">Sizes*</Label>
-                      <div className="">
+                      <div className="grid grid-cols-2 gap-2">
                         {productSizes.map((size) => (
-                          <div key={size.size_name} className="flex items-center space-x-2 m-2">
+                          <div key={size.size_name} className="flex items-center space-x-2">
                             <Checkbox
                               id={size.size_name}
                               checked={watch("productSizes")?.includes(size.size_name)}
@@ -379,9 +379,9 @@ const ProductCreationForm = () => {
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="productColors">Colors*</Label>
-                      <div className="">
+                      <div className="grid grid-cols-2 gap-2">
                         {productColors.map((color) => (
-                          <div key={color.color_name} className="flex items-center space-x-2 m-2">
+                          <div key={color.color_name} className="flex items-center space-x-2">
                             <Checkbox
                               id={color.color_name}
                               checked={watch("productColors")?.includes(color.color_name)}

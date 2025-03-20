@@ -958,6 +958,10 @@ video {
   height: 1px;
 }
 
+.h-\[380px\] {
+  height: 380px;
+}
+
 .h-\[400px\] {
   height: 400px;
 }
@@ -988,6 +992,10 @@ video {
 
 .max-h-\[400px\] {
   max-height: 400px;
+}
+
+.max-h-\[600px\] {
+  max-height: 600px;
 }
 
 .max-h-\[70vh\] {
@@ -1110,6 +1118,10 @@ video {
   min-width: 1.25rem;
 }
 
+.min-w-52 {
+  min-width: 13rem;
+}
+
 .min-w-56 {
   min-width: 14rem;
 }
@@ -1222,6 +1234,10 @@ video {
 
 .cursor-default {
   cursor: default;
+}
+
+.cursor-grab {
+  cursor: grab;
 }
 
 .cursor-pointer {
@@ -1386,10 +1402,6 @@ video {
 
 .overflow-x-hidden {
   overflow-x: hidden;
-}
-
-.overflow-y-scroll {
-  overflow-y: scroll;
 }
 
 .truncate {
@@ -1607,11 +1619,6 @@ video {
 
 .bg-transparent {
   background-color: transparent;
-}
-
-.bg-white {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
 }
 
 .bg-white\/80 {
@@ -2406,6 +2413,10 @@ video {
 
 .focus-visible\:ring-offset-2:focus-visible {
   --tw-ring-offset-width: 2px;
+}
+
+.active\:cursor-grabbing:active {
+  cursor: grabbing;
 }
 
 .active\:bg-sidebar-accent:active {

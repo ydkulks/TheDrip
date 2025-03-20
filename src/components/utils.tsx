@@ -214,6 +214,23 @@ export async function getProduct(productId: number): Promise<Product | null> {
   }
 }
 
+export async function getProductsById(productId: number[], page: number): Promise<ApiResponse | null> {
+  let url = `http://localhost:8080/api/productsbyid?id=${productId}&page=${page}&size=10&sort=productName,desc`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data: ApiResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    toastNotification("Failed to fetch products", getCurrentTime())
+    return null;
+  }
+}
+
 export const emptyProduct: Product = {
   productId: 0,
   productName: "Product Name",
