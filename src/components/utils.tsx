@@ -244,3 +244,50 @@ export const emptyProduct: Product = {
   sizes: ["small", "medium", "large", "extra_large", "double_extra_large"],
   colors: ["original"],
 }
+
+export const updateProducts = async (products: any | any[]) => {
+  const token = localStorage.getItem("token");
+  try {
+    // Ensure products is always an array
+    const productsArray = Array.isArray(products) ? products : [products];
+
+    // Extract all product IDs for query param
+    const productIds = productsArray.map((product) => product.productId).join(",");
+    if (!productIds) throw new Error("At least one product ID is required");
+
+    const url = `http://localhost:8080/seller/products?productIds=${productIds}`;
+
+    // Construct payload
+    const payload = productsArray.map((product) => ({
+      productName: product.productName,
+      categoryId: product.categoryId,
+      userId: tokenDetails().id, // Ensure correct userId (change if needed)
+      seriesId: product.seriesId,
+      productPrice: product.productPrice,
+      productDescription: product.productDescription,
+      productStock: product.productStock,
+      productSizes: product.productSizes, // Should be an array of size IDs
+      productColors: product.productColors, // Should be an array of color IDs
+    }));
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update products: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log("Products updated successfully:", result);
+    return result;
+  } catch (error) {
+    console.error("Error updating products:", error);
+    throw error;
+  }
+};

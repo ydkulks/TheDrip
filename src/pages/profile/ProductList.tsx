@@ -41,7 +41,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getCurrentTime, toastNotification, tokenDetails, syncProductSpecifications, ProdSpecsType, prodSpecs, formatName, getData } from "@/components/utils"
+import { getCurrentTime, toastNotification, tokenDetails, syncProductSpecifications, ProdSpecsType, prodSpecs, formatName, getData, emptyProduct, updateProducts } from "@/components/utils"
 import { Card } from "@/components/ui/card";
 import {
   ContextMenu,
@@ -96,6 +96,8 @@ async function deleteProduct(id: number[]) {
 export default function ProductList() {
   const [page, setPage] = useState(0);
   const [data, setData] = useState<Product[]>([]);
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editedValues, setEditedValues] = useState<Product>(emptyProduct)
   const [totalPages, setTotalPages] = useState(1);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] =
@@ -270,6 +272,123 @@ export default function ProductList() {
     }
   }, [isGrabMode])
 
+  const handleEdit = (product: Product) => {
+    setEditingId(product.productId);
+    setEditedValues(product);
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditedValues(emptyProduct);
+  };
+
+  // const handleChange = (field: keyof Product, value: string | number | string[]) => {
+  //   setEditedValues((prev) => ({
+  //     ...prev,
+  //     [field]: value,
+  //   }));
+  // };
+  const handleChange = (
+    field: keyof Product,
+    value: string | number | string[]
+  ) => {
+    setEditedValues((prev) => {
+      // For "colors" and "sizes", treat value as a single string (option to toggle)
+      if (field === "colors" || field === "sizes") {
+        // Ensure we have an array (or default to an empty array)
+        const currentSelections = Array.isArray(prev[field])
+          ? (prev[field] as string[])
+          : [];
+        // Assume value is a string representing the new selection
+        const newValue = value as string;
+        // Toggle the selection: remove if already exists, add if not
+        const updatedSelections = currentSelections.includes(newValue)
+          ? currentSelections.filter((item) => item !== newValue)
+          : [...currentSelections, newValue];
+
+        return {
+          ...prev,
+          [field]: updatedSelections,
+        };
+      }
+      // For other fields, simply replace the value
+      return {
+        ...prev,
+        [field]: value,
+      };
+    });
+  };
+
+  const handleSave = () => {
+    try {
+      if (!editedValues?.productDescription || editedValues.productDescription.trim() === "") {
+        throw new Error("Product Description cannot be empty");
+      }
+      if (isNaN(Number(editedValues.productPrice)) || Number(editedValues.productPrice) <= 0) {
+        throw new Error("Price must be a positive number");
+      }
+      if (isNaN(Number(editedValues.productStock)) || Number(editedValues.productStock) < 0) {
+        throw new Error("Stock must be a non-negative number");
+      }
+      if (!Array.isArray(editedValues.colors) || editedValues.colors.length === 0) {
+        throw new Error("Invalid Colors");
+      }
+      if (!Array.isArray(editedValues.sizes) || editedValues.sizes.length === 0) {
+        throw new Error("Invalid Sizes");
+      }
+
+      const categoryObj = prodSpecs.categories.find(obj => obj.categoryName === editedValues.categoryName);
+      const seriesObj = prodSpecs.series.find(obj => obj.series_name === editedValues.seriesName);
+      const transformedValues = {
+        ...editedValues,
+        categoryId: editedValues.categoryName ?
+          (categoryObj ? categoryObj.categoryId : null)
+          : 0,
+        seriesId: editedValues.seriesName ? (
+          seriesObj ? seriesObj.series_id : null
+        ) : 0,
+        productColors: Array.isArray(editedValues.colors)
+          ? editedValues.colors
+            .map((colorName) => {
+              const colorObj = prodSpecs.colors.find((obj) => obj.color_name === colorName);
+              return colorObj ? colorObj.color_id : null;
+            })
+            .filter((id): id is number => id !== null) // Remove null values
+          : [],
+        productSizes: Array.isArray(editedValues.sizes)
+          ? editedValues.sizes
+            .map((sizeName) => {
+              const sizeObj = prodSpecs.sizes.find((obj) => obj.size_name === sizeName);
+              return sizeObj ? sizeObj.size_id : null;
+            })
+            .filter((id): id is number => id !== null) // Remove null values
+          : [],
+      };
+
+      // console.log(transformedValues);
+      // console.log("Before convertion:", editedValues.colors, editedValues.sizes);
+      // console.log("Final Edited Values:", transformedValues.colors, transformedValues.sizes);
+      updateProducts(transformedValues)
+        .then(() => {
+          setData((prev) =>
+            prev.map((product) =>
+              product.productId === editedValues.productId
+                ? ({ ...product, ...editedValues } as Product)
+                : product
+            )
+          );
+          setEditingId(null);
+          toastNotification(
+            "Product updated",
+            `${editedValues.productName} has been successfully updated.`,
+          );
+        });
+
+    } catch (error: any) {
+      toastNotification("Error", error.message);
+    }
+  };
+
   const table = useReactTable({
     data,
     columns,
@@ -284,6 +403,14 @@ export default function ProductList() {
       columnVisibility,
       rowSelection,
     },
+    meta: {
+      editingId,
+      editedValues,
+      handleEdit,
+      handleCancel,
+      handleChange,
+      handleSave,
+    }
   });
 
   // Context Menu
@@ -308,12 +435,12 @@ export default function ProductList() {
 
   const handleUpdateProduct = () => {
     const rows = table.getSelectedRowModel().flatRows.map((row) => row.original.productId)
-    if (rows.length === 1) {
-      navigate(`/profile/product_details?productId=${rows}`, { replace: true });
+    if (rows.length >= 1) {
+      navigate(`/profile/product_update?productId=${rows}`, { replace: true });
     }
-    if (rows.length > 1) {
-      toastNotification("Cannot update more then one product at a time", getCurrentTime());
-    }
+    // if (rows.length > 1) {
+    //   toastNotification("Cannot update more then one product at a time", getCurrentTime());
+    // }
   };
 
   const handleUploadImages = () => {
@@ -630,7 +757,7 @@ export default function ProductList() {
             <div
               ref={tableContainerRef}
               {...containerProps}
-              className={`overflow-auto max-h-[600px] ${isGrabMode ? "cursor-grab active:cursor-grabbing select-none" : ""}`}
+              className={`overflow-auto ${isGrabMode ? "cursor-grab active:cursor-grabbing select-none" : ""}`}
               style={{
                 overflowX: "auto", // Ensure horizontal scrolling is enabled
                 width: "100%", // Take full width
