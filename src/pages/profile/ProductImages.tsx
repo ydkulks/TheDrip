@@ -90,7 +90,7 @@ export default function ProductImages() {
       .split(",")
       .map(id => parseInt(id, 10))
       .filter(id => !isNaN(id));
-    console.log(productIdParam, productId);
+    // console.log(productIdParam, productId);
 
     // if (!isNaN(parsedProductId)) {
     //   productId = parsedProductId;

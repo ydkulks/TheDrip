@@ -2,14 +2,26 @@ import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
-import { Product } from "./types"
+import { UpdateProductType } from "./utils";
+// import { Product } from "./types"
 
+interface ProductType {
+  productName: string;
+  categoryId: number;
+  userId?: number;
+  seriesId: number;
+  productPrice: number;
+  productDescription: string;
+  productStock: number;
+  productSizes: number[];
+  productColors: number[];
+}
 interface JsonPreviewProps {
-  data: Product[]
+  data: ProductType[] | UpdateProductType[]
 }
 
 export function JsonPreview({ data }: JsonPreviewProps) {
-  const [view, setView] = useState<"formatted" | "raw">("formatted")
+  const [_view, setView] = useState<"formatted" | "raw">("formatted")
 
   // Count the number of products
   const productCount = Array.isArray(data) ? data.length : 0

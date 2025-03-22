@@ -51,6 +51,7 @@ const Profile = () => {
             <Route path="product_list" element={<ProductList />} />
             <Route path="product_details" element={<ProductDetails />} />
             <Route path="product_images" element={<ProductImages />} />
+            <Route path="product_update" element={<ProductUpdate />} />
           </Routes>
         </SidebarInset>
       </SidebarProvider>

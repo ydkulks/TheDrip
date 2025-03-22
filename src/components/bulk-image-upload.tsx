@@ -465,12 +465,13 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                     const isMarkedForDeletion = product.imagesToDelete.includes(image.id)
 
                                     return (
-                                      <div key={image.id} className="relative group">
+                                      <div key={image.id + image.filename} className="relative group">
                                         <div
                                           className={`aspect-square rounded-md border overflow-hidden ${isMarkedForDeletion ? "opacity-40" : ""
                                             }`}
                                         >
                                           <img
+                                            id={image.filename + image.id}
                                             src={image.url || "/placeholder.svg"}
                                             alt={image.filename}
                                             className="w-full h-full object-cover"
@@ -530,6 +531,7 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                     <div key={index} className="relative group">
                                       <div className="aspect-square rounded-md border overflow-hidden bg-muted">
                                         <img
+                                          id={product.name + product.id}
                                           src={URL.createObjectURL(image) || "/placeholder.svg"}
                                           alt={`New image ${index + 1}`}
                                           className="w-full h-full object-cover"
@@ -646,7 +648,7 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
           {previewImage && (
             <div className="flex items-center justify-center p-2">
               <img
-                src={previewImage || "/placeholder.svg"}
+                src={previewImage || "https://placehold.co/400x400.jpeg"}
                 alt="Preview"
                 className="max-h-[70vh] max-w-full object-contain"
               />

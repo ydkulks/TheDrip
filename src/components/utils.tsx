@@ -63,7 +63,7 @@ interface CategoryType {
 
 interface SeriesType {
   series_id: number;
-  series_name: string;
+  seriesName: string;
 }
 
 interface SizeType {
@@ -82,6 +82,7 @@ export interface ProdSpecsType {
   colors: ColorType[];
 }
 // Default value
+// TODO: Fetch data from server
 export var prodSpecs: ProdSpecsType = {
   "categories": [{ "categoryId": 1, "categoryName": "short_sleeve_tees" }, { "categoryId": 2, "categoryName": "long_sleeve_tees" }, { "categoryId": 3, "categoryName": "button_down_shirt" }, { "categoryId": 4, "categoryName": "hoodies" }, { "categoryId": 5, "categoryName": "cargos" }, { "categoryId": 6, "categoryName": "shorts" }, { "categoryId": 7, "categoryName": "sweat_pants" }, { "categoryId": 8, "categoryName": "tops" }, { "categoryId": 9, "categoryName": "bottoms" }, { "categoryId": 10, "categoryName": "bomber_jackets" }],
   "series": [{ "series_id": 1, "series_name": "Cyberpunk: Edgerunners" }, { "series_id": 2, "series_name": "Dragon Ball Super: Super Hero" }],
@@ -231,6 +232,36 @@ export async function getProductsById(productId: number[], page: number): Promis
   }
 }
 
+export interface UpdateProductType {
+  productId?: number;
+  productName: string;
+  productDescription: string;
+  productPrice: number;
+  productStock: number;
+  seriesId: number;
+  categoryId: number;
+  userId: number;
+  sizes: number[];
+  colors: number[];
+}
+
+export async function getAllProductsById(productId: number[]): Promise<UpdateProductType[] | null> {
+  let url = `http://localhost:8080/api/productsallbyid?id=${productId}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data: UpdateProductType[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    toastNotification("Failed to fetch products", getCurrentTime())
+    return null;
+  }
+}
+
 export const emptyProduct: Product = {
   productId: 0,
   productName: "Product Name",
@@ -245,7 +276,7 @@ export const emptyProduct: Product = {
   colors: ["original"],
 }
 
-export const updateProducts = async (products: any | any[]) => {
+export const updateProducts = async (products: any | UpdateProductType[]) => {
   const token = localStorage.getItem("token");
   try {
     // Ensure products is always an array
@@ -283,9 +314,10 @@ export const updateProducts = async (products: any | any[]) => {
       throw new Error(`Failed to update products: ${response.statusText}`);
     }
 
-    const result = await response.json();
-    console.log("Products updated successfully:", result);
-    return result;
+    // const result = await response.json();
+    // console.log("Products updated successfully:", result);
+    // return result;
+    return response;
   } catch (error) {
     console.error("Error updating products:", error);
     throw error;
