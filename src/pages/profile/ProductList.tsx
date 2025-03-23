@@ -117,6 +117,7 @@ export default function ProductList() {
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isGrabMode, setIsGrabMode] = useState(false)
   const tableContainerRef = React.useRef<HTMLDivElement>(null)
+  const [prodSpecsData, setProdSpecsData] = useState<ProdSpecsType>(prodSpecs);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -152,11 +153,14 @@ export default function ProductList() {
     // console.log(minPrice, maxPrice, seriesId);
   };
 
-  let prodSpecsData: ProdSpecsType = prodSpecs;
   useEffect(() => {
     syncProductSpecifications()
       .then((response) => {
-        prodSpecsData = response as ProdSpecsType;
+        setProdSpecsData(response as ProdSpecsType);
+      })
+      .catch(error => {
+        console.error("Error fetching product specs:", error);
+        // Handle the error, e.g., display an error message
       });
   }, [])
 
@@ -181,7 +185,7 @@ export default function ProductList() {
   const handleInStockChange = (value: boolean | null) => {
     setInStock(value);
   }
-  const handleSeriesToggle = (seriesId: number) => {
+  const handleSeriesToggle = React.useCallback((seriesId: number) => {
     setSelectedSeries((prevSelected) => {
       if (prevSelected.includes(seriesId)) {
         return prevSelected.filter((id) => id !== seriesId);
@@ -189,7 +193,7 @@ export default function ProductList() {
         return [...prevSelected, seriesId];
       }
     });
-  };
+  }, [selectedSeries]);
   const handleCategoryToggle = (categoryId: number) => {
     setSelectedCategories((prevSelected) => {
       if (prevSelected.includes(categoryId)) {
@@ -218,7 +222,7 @@ export default function ProductList() {
   const getSeriesNames = (seriesIds: number[]): string[] => {
     return prodSpecsData.series
       .filter((series) => seriesIds.includes(series.series_id))
-      .map((series) => series.series_name);
+      .map((series) => series.seriesName);
   };
 
   const handleMinPriceChange = (value: number[]) => {
@@ -282,12 +286,6 @@ export default function ProductList() {
     setEditedValues(emptyProduct);
   };
 
-  // const handleChange = (field: keyof Product, value: string | number | string[]) => {
-  //   setEditedValues((prev) => ({
-  //     ...prev,
-  //     [field]: value,
-  //   }));
-  // };
   const handleChange = (
     field: keyof Product,
     value: string | number | string[]
@@ -337,8 +335,8 @@ export default function ProductList() {
         throw new Error("Invalid Sizes");
       }
 
-      const categoryObj = prodSpecs.categories.find(obj => obj.categoryName === editedValues.categoryName);
-      const seriesObj = prodSpecs.series.find(obj => obj.series_name === editedValues.seriesName);
+      const categoryObj = prodSpecsData.categories.find(obj => obj.categoryName === editedValues.categoryName);
+      const seriesObj = prodSpecsData.series.find(obj => obj.seriesName === editedValues.seriesName);
       const transformedValues = {
         ...editedValues,
         categoryId: editedValues.categoryName ?
@@ -350,7 +348,7 @@ export default function ProductList() {
         productColors: Array.isArray(editedValues.colors)
           ? editedValues.colors
             .map((colorName) => {
-              const colorObj = prodSpecs.colors.find((obj) => obj.color_name === colorName);
+              const colorObj = prodSpecsData.colors.find((obj) => obj.color_name === colorName);
               return colorObj ? colorObj.color_id : null;
             })
             .filter((id): id is number => id !== null) // Remove null values
@@ -358,7 +356,7 @@ export default function ProductList() {
         productSizes: Array.isArray(editedValues.sizes)
           ? editedValues.sizes
             .map((sizeName) => {
-              const sizeObj = prodSpecs.sizes.find((obj) => obj.size_name === sizeName);
+              const sizeObj = prodSpecsData.sizes.find((obj) => obj.size_name === sizeName);
               return sizeObj ? sizeObj.size_id : null;
             })
             .filter((id): id is number => id !== null) // Remove null values
@@ -438,8 +436,8 @@ export default function ProductList() {
     if (rows.length >= 1) {
       navigate(`/profile/product_update?productId=${rows}`, { replace: true });
     }
-    // if (rows.length > 1) {
-    //   toastNotification("Cannot update more then one product at a time", getCurrentTime());
+    // if (rows.length <= 1) {
+    //   toastNotification("You can Inline update for single product", getCurrentTime());
     // }
   };
 
@@ -492,15 +490,15 @@ export default function ProductList() {
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Series:</Label>
                   <div className="grid grid-cols-2 gap-2 mt-1">
-                    {prodSpecsData.series.map((index) => (
-                      <div key={index.series_id} className="flex items-center space-x-2">
+                    {prodSpecsData.series.map((seriesItem) => (
+                      <div key={seriesItem.series_id} className="flex items-center space-x-2">
                         <Checkbox
-                          id={`series-${index.series_id}`}
-                          checked={selectedSeries.includes(index.series_id)}
-                          onCheckedChange={() => handleSeriesToggle(index.series_id)}
+                          id={`series-${seriesItem.series_id}`}
+                          checked={selectedSeries.includes(seriesItem.series_id)}
+                          onCheckedChange={() => handleSeriesToggle(seriesItem.series_id)}
                         />
-                        <Label htmlFor={`series-${index.series_id}`} className="text-sm font-normal cursor-pointer">
-                          {formatName(index.series_name)}
+                        <Label htmlFor={`series-${seriesItem.series_id}`} className="text-sm font-normal cursor-pointer">
+                          {formatName(seriesItem.seriesName)}
                         </Label>
                       </div>
                     ))}

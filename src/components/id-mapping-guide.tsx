@@ -2,9 +2,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { InfoIcon } from "lucide-react"
+import { useEffect, useState } from "react"
+import { formatName, prodSpecs, ProdSpecsType, syncProductSpecifications } from "./utils"
 
-// TODO: Fetch data from server
 export function IdMappingGuide() {
+  const [prodSpecsData, setProdSpecsData] = useState(prodSpecs);
+  useEffect(() => {
+    syncProductSpecifications()
+      .then((response) => {
+        setProdSpecsData(response as ProdSpecsType);
+      });
+  }, [])
   return (
     <Card className="mb-6 border-blue-100 max-h-3xl">
       <CardHeader className="pb-2">
@@ -32,46 +40,12 @@ export function IdMappingGuide() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>1</TableCell>
-                  <TableCell>Short Sleeve Tees</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>2</TableCell>
-                  <TableCell>Long Sleeve Tees</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>3</TableCell>
-                  <TableCell>Button Down Shirt</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>4</TableCell>
-                  <TableCell>Hoodies</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>5</TableCell>
-                  <TableCell>Cargos</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>6</TableCell>
-                  <TableCell>Shorts</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>7</TableCell>
-                  <TableCell>Sweat Pants</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>8</TableCell>
-                  <TableCell>Tops</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>9</TableCell>
-                  <TableCell>Bottoms</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>10</TableCell>
-                  <TableCell>Bomber Jackets</TableCell>
-                </TableRow>
+                {prodSpecsData.categories.map(cat => (
+                  <TableRow>
+                    <TableCell>{cat.categoryId}</TableCell>
+                    <TableCell>{formatName(cat.categoryName)}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TabsContent>
@@ -85,14 +59,12 @@ export function IdMappingGuide() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>1</TableCell>
-                  <TableCell>Cyberpunk: Edgerunners</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>2</TableCell>
-                  <TableCell>Dragon Ball Super: Super Hero</TableCell>
-                </TableRow>
+                {prodSpecsData.series.map(seriesItem => (
+                  <TableRow>
+                    <TableCell>{seriesItem.series_id}</TableCell>
+                    <TableCell>{formatName(seriesItem.seriesName)}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TabsContent>
@@ -106,26 +78,12 @@ export function IdMappingGuide() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>1</TableCell>
-                  <TableCell>Small</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>2</TableCell>
-                  <TableCell>Medium</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>3</TableCell>
-                  <TableCell>Large</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>4</TableCell>
-                  <TableCell>Extra Large</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>5</TableCell>
-                  <TableCell>Double Extra Large</TableCell>
-                </TableRow>
+                {prodSpecsData.sizes.map(size => (
+                  <TableRow>
+                    <TableCell>{size.size_id}</TableCell>
+                    <TableCell>{formatName(size.size_name)}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TabsContent>
@@ -138,18 +96,12 @@ export function IdMappingGuide() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>1</TableCell>
-                  <TableCell>Original</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>2</TableCell>
-                  <TableCell>White</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>3</TableCell>
-                  <TableCell>Black</TableCell>
-                </TableRow>
+                {prodSpecsData.colors.map(color => (
+                  <TableRow>
+                    <TableCell>{color.color_id}</TableCell>
+                    <TableCell>{formatName((color.color_name))}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </TabsContent>

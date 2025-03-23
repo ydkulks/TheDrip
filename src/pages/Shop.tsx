@@ -41,6 +41,7 @@ const Shop = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const IMG_COUNT = 1
   const [selectedSort, setSelectedSort] = useState<string | undefined>(undefined)
+  const [prodSpecsData, setProdSpecsData] = useState<ProdSpecsType>(prodSpecs);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -75,11 +76,12 @@ const Shop = () => {
     // console.log(minPrice, maxPrice, seriesId);
   };
 
-  let prodSpecsData: ProdSpecsType = prodSpecs;
+  // let prodSpecsData: ProdSpecsType = prodSpecs;
   useEffect(() => {
     syncProductSpecifications()
       .then((response) => {
-        prodSpecsData = response as ProdSpecsType;
+        // prodSpecsData = response as ProdSpecsType;
+        setProdSpecsData(response as ProdSpecsType);
       });
   }, [])
 
@@ -175,7 +177,7 @@ const Shop = () => {
   const getSeriesNames = (seriesIds: number[]): string[] => {
     return prodSpecsData.series
       .filter((series) => seriesIds.includes(series.series_id))
-      .map((series) => series.series_name);
+      .map((series) => series.seriesName);
   };
 
   const handleMinPriceChange = (value: number[]) => {
@@ -229,7 +231,7 @@ const Shop = () => {
                           onCheckedChange={() => handleSeriesToggle(index.series_id)}
                         />
                         <Label htmlFor={`series-${index.series_id}`} className="text-sm font-normal cursor-pointer">
-                          {formatName(index.series_name)}
+                          {formatName(index.seriesName)}
                         </Label>
                       </div>
                     ))}

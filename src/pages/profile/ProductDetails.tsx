@@ -16,7 +16,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useEffect, useState } from "react";
 // UI
-import { getCurrentTime, toastNotification, tokenDetails } from "@/components/utils";
+import { getCurrentTime, prodSpecs, ProdSpecsType, syncProductSpecifications, toastNotification, tokenDetails } from "@/components/utils";
 import {
   Select,
   SelectContent,
@@ -66,188 +66,102 @@ async function productFormData(data: ProductFormInputs[], url: string) {
   }
 }
 
-// Get the ID and VALUE from DB dynamically
-interface Category {
-  categoryId: number;
-  categoryName: string;
-}
-
-interface Series {
-  series_id: number;
-  series_name: string;
-}
-
-interface Size {
-  size_id: number;
-  size_name: string;
-}
-
-interface Color {
-  color_id: number;
-  color_name: string;
-}
-
-interface JsonData {
-  categories: Category[];
-  series: Series[];
-  sizes: Size[];
-  colors: Color[];
-}
-
-interface CategoryMap {
-  [key: string]: number; // Key is the formatted category name, value is the ID
-}
-
-interface SeriesMap {
-  [key: string]: number; // Key is the series name, value is the ID
-}
-
-interface ProductColor {
-  color_id: number;
-  color_name: string;
-}
-
-interface ProductSize {
-  size_id: number;
-  size_name: string;
-}
-
-// Default value
-var jsonData: JsonData = {
-  "categories": [{ "categoryId": 1, "categoryName": "short_sleeve_tees" }, { "categoryId": 2, "categoryName": "long_sleeve_tees" }, { "categoryId": 3, "categoryName": "button_down_shirt" }, { "categoryId": 4, "categoryName": "hoodies" }, { "categoryId": 5, "categoryName": "cargos" }, { "categoryId": 6, "categoryName": "shorts" }, { "categoryId": 7, "categoryName": "sweat_pants" }, { "categoryId": 8, "categoryName": "tops" }, { "categoryId": 9, "categoryName": "bottoms" }, { "categoryId": 10, "categoryName": "bomber_jackets" }],
-  "series": [{ "series_id": 1, "series_name": "Cyberpunk: Edgerunners" }, { "series_id": 2, "series_name": "Dragon Ball Super: Super Hero" }],
-  "sizes": [{ "size_id": 1, "size_name": "small" }, { "size_id": 2, "size_name": "medium" }, { "size_id": 3, "size_name": "large" }, { "size_id": 4, "size_name": "extra_large" }, { "size_id": 5, "size_name": "double_extra_large" }],
-  "colors": [{ "color_id": 1, "color_name": "original" }, { "color_id": 2, "color_name": "white" }, { "color_id": 3, "color_name": "black" }]
-}
-
-// Fetch categories, series, colors and sizes data to sync
-// async function syncFormFields(url: string) {
-//   try {
-//     const response = await fetch(url, {
-//       headers: { "Content-Type": "application/json" },
-//     });
-
-//     if (response.ok) {
-//       return response.json();
-//     } else {
-//       throw new Error(`Error submitting form: ${response.status}`);
-//     }
-//   } catch (error) {
-//     console.error("An error occurred:", error);
-//   }
-// }
-// WARN: Backend URL
-// syncFormFields("http://localhost:8080/api/productspecifications")
-//   .then((response) => {
-//     // console.log(response);
-//     jsonData = response as JsonData;
-//   });
-
-const categoryMap: CategoryMap = {};
-jsonData.categories.forEach(category => {
-  categoryMap[formatName(category.categoryName)] = category.categoryId;
-});
-
-const seriesMap: SeriesMap = {};
-jsonData.series.forEach(series => {
-  seriesMap[formatName(series.series_name)] = series.series_id;
-});
-
-const productColors: ProductColor[] = [];
-jsonData.colors.forEach(color => {
-  productColors.push({ color_id: color.color_id, color_name: formatName(color.color_name) });
-});
-
-const productSizes: ProductSize[] = [];
-jsonData.sizes.forEach(size => {
-  productSizes.push({ size_id: size.size_id, size_name: formatName(size.size_name) });
-});
-
-
-// Helper function to format names (e.g., short_sleeve_tees to Short Sleeve Tees)
-function formatName(name: string) {
-  return name.replace(/_/g, ' ') // Replace underscores with spaces
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
-    .join(' ');
-}
-
-const categoryKeys = Object.keys(categoryMap);
-const seriesKeys = Object.keys(seriesMap);
-
-const productSchema = yup.object().shape({
-  productName: yup
-    .string()
-    .required("Product Name is required")
-    .min(3, "Must have at least 3 characters"),
-  productDescription: yup
-    .string()
-    .required("Product Description is required")
-    .min(10, "Must have at least 10 characters")
-    .max(500, "Must have at maximum 500 characters"),
-  productColors: yup
-    .array()
-    .of(yup.string())
-    .required("You must select at least one color")
-    .min(1, "You must select at least one color"),
-  productSizes: yup
-    .array()
-    .of(yup.string())
-    .required("You must select at least one size")
-    .min(1, "You must select at least one size"),
-  categoryId: yup
-    .string()
-    .oneOf(categoryKeys, "Invalid category selected")
-    .required("Category Id is required"),
-  seriesId: yup
-    .string()
-    .oneOf(seriesKeys, "Invalid series selected")
-    .required("Series Id is required"),
-  productPrice: yup
-    .number()
-    .required("Price is required")
-    .positive("Price must be positive")
-    .typeError("Price must be a number"),
-  productStock: yup
-    .number()
-    .required("Stock is required")
-    .integer("Stock must be an integer")
-    .min(0, "Stock cannot be negative"),
-});
-
 const ProductCreationForm = () => {
-  // NOTE: Update product: Initializing states and variables
-  // const [searchParams] = useSearchParams();
-  // const productIdParam = searchParams.get('productId');
-  // const [data, setData] = useState<Product>(emptyProduct);
-  // let productId: number | null = null;
+  const [prodSpecsData, setProdSpecsData] = useState(prodSpecs);
+  interface CategoryMap {
+    [key: string]: number; // Key is the formatted category name, value is the ID
+  }
 
-  // if (productIdParam) {
-  //   const parsedProductId = parseInt(productIdParam, 10);
+  interface SeriesMap {
+    [key: string]: number; // Key is the series name, value is the ID
+  }
 
-  //   if (!isNaN(parsedProductId)) {
-  //     productId = parsedProductId;
-  //   } else {
-  //     console.error("Invalid productId in URL:", productIdParam);
-  //     // Handle the error (e.g., redirect, display a message)
-  //   }
-  // }
-  // // NOTE: Update product: Fetching product details
-  // useEffect(() => {
-  //   const fetchData = async (pid: number) => {
-  //     try {
-  //       const apiResponse = await getProduct(pid);
-  //       setData(apiResponse as Product);
-  //     } catch (error) {
-  //       console.error("Failed to fetch total pages:", error);
-  //     }
-  //   };
+  interface ProductColor {
+    color_id: number;
+    color_name: string;
+  }
 
-  //   if (typeof productId === "number") {
-  //     const pid: number = productId;
-  //     fetchData(pid);
-  //   }
-  // }, [productId]);
+  interface ProductSize {
+    size_id: number;
+    size_name: string;
+  }
+
+  useEffect(() => {
+    syncProductSpecifications()
+      .then((response) => {
+        setProdSpecsData(response as ProdSpecsType);
+      });
+  }, [])
+
+  const categoryMap: CategoryMap = {};
+  prodSpecsData.categories.forEach(category => {
+    categoryMap[formatName(category.categoryName)] = category.categoryId;
+  });
+
+  const seriesMap: SeriesMap = {};
+  prodSpecsData.series.forEach(series => {
+    seriesMap[formatName(series.seriesName)] = series.series_id;
+  });
+
+  const productColors: ProductColor[] = [];
+  prodSpecsData.colors.forEach(color => {
+    productColors.push({ color_id: color.color_id, color_name: formatName(color.color_name) });
+  });
+
+  const productSizes: ProductSize[] = [];
+  prodSpecsData.sizes.forEach(size => {
+    productSizes.push({ size_id: size.size_id, size_name: formatName(size.size_name) });
+  });
+
+
+  // Helper function to format names (e.g., short_sleeve_tees to Short Sleeve Tees)
+  function formatName(name: string) {
+    return name.replace(/_/g, ' ') // Replace underscores with spaces
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+      .join(' ');
+  }
+
+  const productSchema = yup.object().shape({
+    productName: yup
+      .string()
+      .required("Product Name is required")
+      .min(3, "Must have at least 3 characters"),
+    productDescription: yup
+      .string()
+      .required("Product Description is required")
+      .min(10, "Must have at least 10 characters")
+      .max(500, "Must have at maximum 500 characters"),
+    productColors: yup
+      .array()
+      .of(yup.string())
+      .required("You must select at least one color")
+      .min(1, "You must select at least one color"),
+    productSizes: yup
+      .array()
+      .of(yup.string())
+      .required("You must select at least one size")
+      .min(1, "You must select at least one size"),
+    categoryId: yup
+      .string()
+      .oneOf(prodSpecsData.categories.map(index => (formatName(index.categoryName))), "Invalid category selected")
+      .required("Category Id is required"),
+    seriesId: yup
+      .string()
+      .oneOf(prodSpecsData.series.map(index => (index.seriesName)), "Invalid series selected")
+      .required("Series Id is required"),
+    productPrice: yup
+      .number()
+      .required("Price is required")
+      .positive("Price must be positive")
+      .typeError("Price must be a number"),
+    productStock: yup
+      .number()
+      .required("Stock is required")
+      .integer("Stock must be an integer")
+      .min(0, "Stock cannot be negative"),
+  });
+
   const {
     control,
     register,
@@ -319,8 +233,6 @@ const ProductCreationForm = () => {
 
     setValue("productSizes", newSizes);
   };
-  const [categories, _setCategories] = useState(Object.keys(categoryMap));
-  const [series, _setSeries] = useState(Object.keys(seriesMap));
   return (
     <div className="flex w-full items-center justify-center p-2">
       <Tabs defaultValue="create" className="w-full">
@@ -407,9 +319,9 @@ const ProductCreationForm = () => {
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              {categories.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                  {category}
+                              {prodSpecsData.categories.map((category) => (
+                                <SelectItem key={category.categoryName} value={formatName(category.categoryName)}>
+                                  {formatName(category.categoryName)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -428,9 +340,9 @@ const ProductCreationForm = () => {
                               <SelectValue> {field.value || "Select series"} </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              {series.map((seriesName) => (
-                                <SelectItem key={seriesName} value={seriesName}>
-                                  {seriesName}
+                              {prodSpecsData.series.map(seriesItem => (
+                                <SelectItem key={seriesItem.seriesName} value={seriesItem.seriesName}>
+                                  {seriesItem.seriesName}
                                 </SelectItem>
                               ))}
                             </SelectContent>
