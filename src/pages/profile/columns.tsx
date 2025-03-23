@@ -98,6 +98,17 @@ export const columns: ColumnDef<Product>[] = [
         </Button>
       );
     },
+    cell: ({ row, table }) => {
+      const { editingId, editedValues, handleChange }: any = table.options.meta;
+      return editingId === row.original.productId ? (
+        <Input
+          value={editedValues.productName || ""}
+          onChange={(e) => handleChange("productName", e.target.value)}
+        />
+      ) : (
+        <p>{row.original.productName}</p>
+      );
+    },
   },
   {
     accessorKey: "productDescription",
@@ -186,6 +197,31 @@ export const columns: ColumnDef<Product>[] = [
         </Button>
       );
     },
+    cell: ({ row, table }) => {
+      const { editingId, editedValues, handleChange, prodSpecsData }: any = table.options.meta;
+      return editingId === row.original.productId ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto m-2">
+              Select Series<ChevronDown />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {prodSpecsData.series.map((seriesItem: any) => (
+              <DropdownMenuCheckboxItem
+                key={seriesItem.seriesName + seriesItem.series_id}
+                checked={editedValues.seriesName.includes(seriesItem.seriesName)}
+                onCheckedChange={() => handleChange("seriesName", seriesItem.seriesName)}
+              >
+                {formatSize(seriesItem.seriesName)}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <span>{row.original.seriesName}</span>
+      )
+    },
   },
   {
     accessorKey: "categoryName",
@@ -200,8 +236,30 @@ export const columns: ColumnDef<Product>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => {
-      return formatName(row.original.categoryName);
+    cell: ({ row, table }) => {
+      const { editingId, editedValues, handleChange, prodSpecsData }: any = table.options.meta;
+      return editingId === row.original.productId ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto m-2">
+              Select Category<ChevronDown />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {prodSpecsData.categories.map((cat: any) => (
+              <DropdownMenuCheckboxItem
+                key={cat.categoryName + cat.categoryId}
+                checked={editedValues.categoryName.includes(cat.categoryName)}
+                onCheckedChange={() => handleChange("categoryName", cat.categoryName)}
+              >
+                {formatSize(cat.categoryName)}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <span>{formatName(row.original.categoryName)}</span>
+      )
     },
   },
   {
@@ -222,7 +280,7 @@ export const columns: ColumnDef<Product>[] = [
     id: "colors",
     header: "Colors",
     cell: ({ row, table }) => {
-      const { editingId, editedValues, handleChange }: any = table.options.meta;
+      const { editingId, editedValues, handleChange, prodSpecsData }: any = table.options.meta;
       return editingId === row.original.productId ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -231,13 +289,13 @@ export const columns: ColumnDef<Product>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {["original", "black", "white"].map((color) => (
+            {prodSpecsData.colors.map((color: any) => (
               <DropdownMenuCheckboxItem
-                key={color}
-                checked={editedValues.colors.includes(color)}
-                onCheckedChange={() => handleChange("colors", color)}
+                key={color.color_name + color.color_id}
+                checked={editedValues.colors.includes(color.color_name)}
+                onCheckedChange={() => handleChange("colors", color.color_name)}
               >
-                {formatName(color)}
+                {formatName(color.color_name)}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>
@@ -259,7 +317,7 @@ export const columns: ColumnDef<Product>[] = [
     id: "sizes",
     header: "Sizes",
     cell: ({ row, table }) => {
-      const { editingId, editedValues, handleChange }: any = table.options.meta;
+      const { editingId, editedValues, handleChange, prodSpecsData }: any = table.options.meta;
       return editingId === row.original.productId ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -268,13 +326,13 @@ export const columns: ColumnDef<Product>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {["small", "medium", "large", "extra_large", "double_extra_large"].map((size) => (
+            {prodSpecsData.sizes.map((size: any) => (
               <DropdownMenuCheckboxItem
-                key={size}
-                checked={editedValues.sizes.includes(size)}
-                onCheckedChange={() => handleChange("sizes", size)}
+                key={size.size_name + size.size_id}
+                checked={editedValues.sizes.includes(size.size_name)}
+                onCheckedChange={() => handleChange("sizes", size.size_name)}
               >
-                {formatSize(size)}
+                {formatSize(size.size_name)}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>

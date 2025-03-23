@@ -16,7 +16,7 @@
         - [ ] Update user info
         - [ ] Password reset
     - [ ] Seller features
-        - [ ] Create product
+        - [x] Create product
             - [x] UI
             - [x] Validation
             - [x] Sync dropdown and checkbox with DB values
@@ -24,16 +24,16 @@
             - [x] Get token and userId from JWT
             - [x] Upload product images
             - [x] Upload product images (Bulk)
-            - [ ] Get productIds from search param to fetch selected products from list
-            - [ ] Delete images (Bulk)
+            - [x] Get productIds from search param to fetch selected products from list
             - [x] Create products (Bulk)
         - [ ] Update products
-            - [ ] UI
-            - [ ] Validation
-            - [ ] Sync dropdown and checkbox with DB values
-            - [ ] Request to create new product
-            - [ ] Update product images (Bulk)
-            - [ ] Update products (Bulk)
+            - [x] UI
+            - [x] Validation
+            - [x] Sync dropdown and checkbox with DB values
+            - [x] Request to create new product
+            - [x] Update product images (Bulk)
+            - [ ] Delete product images (Bulk)
+            - [x] Update products (Bulk)
         - [ ] List products
             - [x] Request for data
             - [x] Table of products
@@ -50,7 +50,7 @@
             - [ ] Context Menu
                 - [x] Create new product
                 - [x] Copy selected product ID
-                - [ ] Updated selected products
+                - [x] Updated selected products
                 - [x] Upload images(single)
                 - [ ] Manage images for selected products(bulk)
                 - [x] Delete selected products (Single)
@@ -77,8 +77,8 @@
         - [ ] Cart
         - [ ] Order
     - [ ] Admin features
-        - [ ] Users
-        - [ ] Products
+        - [ ] Create Users with temp credentials
+        - [ ] Manage Products for other users
 
 ## 🧑‍💻 Technologies Used
 - React.js

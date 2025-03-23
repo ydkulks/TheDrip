@@ -408,6 +408,7 @@ export default function ProductList() {
       handleCancel,
       handleChange,
       handleSave,
+      prodSpecsData,
     }
   });
 
