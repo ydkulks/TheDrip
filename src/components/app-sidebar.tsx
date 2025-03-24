@@ -107,21 +107,12 @@ const AppSidebar = () => {
             <SidebarMenu>
               {product.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <SidebarMenuButton asChild>
-                          <Link to={item.url}>
-                            <item.icon />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{item.title}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

@@ -145,46 +145,10 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
           </TooltipProvider>
         </h2>
         <div className="flex justify-start gap-3 pt-1">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Link to="/shop" className="hover:underline">Shop</Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Shop</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Link to="/shop" className="hover:underline">On Sale</Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>On Sale</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Link to="/shop" className="hover:underline">New Arrivals</Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>New Arrivals</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Link to="/shop" className="hover:underline">Categories</Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Categories</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Link to="/shop" className="hover:underline">Shop</Link>
+          <Link to="/shop" className="hover:underline">On Sale</Link>
+          <Link to="/shop" className="hover:underline">New Arrivals</Link>
+          <Link to="/shop" className="hover:underline">Categories</Link>
         </div>
       </div>
       <div className="flex justify-end gap-1">

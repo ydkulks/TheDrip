@@ -252,7 +252,7 @@ export const columns: ColumnDef<Product>[] = [
                 checked={editedValues.categoryName.includes(cat.categoryName)}
                 onCheckedChange={() => handleChange("categoryName", cat.categoryName)}
               >
-                {formatSize(cat.categoryName)}
+                {formatName(cat.categoryName)}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>
