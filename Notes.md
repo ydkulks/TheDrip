@@ -26,15 +26,15 @@
             - [x] Upload product images (Bulk)
             - [x] Get productIds from search param to fetch selected products from list
             - [x] Create products (Bulk)
-        - [ ] Update products
+        - [x] Update products
             - [x] UI
             - [x] Validation
             - [x] Sync dropdown and checkbox with DB values
             - [x] Request to create new product
             - [x] Update product images (Bulk)
-            - [ ] Delete product images (Bulk)
+            - [x] Delete product images (Bulk)
             - [x] Update products (Bulk)
-        - [ ] List products
+        - [x] List products
             - [x] Request for data
             - [x] Table of products
             - [x] Paginate
@@ -47,14 +47,16 @@
                 - [x] Colors
                 - [x] Sizes
                 - [x] Stock
-            - [ ] Context Menu
+            - [x] Context Menu
                 - [x] Create new product
                 - [x] Copy selected product ID
                 - [x] Updated selected products
                 - [x] Upload images(single)
-                - [ ] Manage images for selected products(bulk)
+                - [x] Manage images for selected products(bulk)
                 - [x] Delete selected products (Single)
                 - [x] Delete selected products (Bulk)
+        - [ ] Dashboard
+            - [ ] Data Visualization
     - [ ] Customer features
         - [ ] Shop products
             - [x] Basic UI

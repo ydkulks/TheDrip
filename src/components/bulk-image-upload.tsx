@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
-import { Upload, X, Check, AlertCircle, Eye, Trash2 } from "lucide-react"
+import { Upload, X, Check, AlertCircle, Eye, Trash2, Image } from "lucide-react"
+import * as yup from "yup"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,9 +10,47 @@ import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getProductsById, tokenDetails } from "./utils"
-import { ApiResponse } from "./types"
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "./ui/pagination"
+import { getProductsById, toastNotification, tokenDetails } from "./utils"
+import type { ApiResponse } from "./types"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "./ui/pagination"
+
+// Validation constants
+const MAX_FILE_SIZE = 1 * 1024 * 1024 // 1MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+
+// Validation schema
+const validationSchema = yup.object().shape({
+  productId: yup
+    .array()
+    .of(yup.number().positive("Product ID must be a positive number"))
+    .min(1, "At least one Product ID is required"),
+  files: yup
+    .array()
+    .of(
+      yup
+        .mixed()
+        .test("fileSize", "File size is too large", (value: any) => {
+          if (value) {
+            return value.size <= MAX_FILE_SIZE
+          }
+          return true // Allow empty array
+        })
+        .test("fileType", "Unsupported File Format", (value: any) => {
+          if (value) {
+            return ACCEPTED_IMAGE_TYPES.includes(value.type)
+          }
+          return true // Allow empty array
+        }),
+    )
+    .required("Please select at least one file"),
+})
 
 interface ExistingImage {
   id: string
@@ -35,7 +74,7 @@ interface UploadStatus {
 }
 
 interface BulkUploadProps {
-  productIds: number[];
+  productIds: number[]
 }
 
 export default function BulkUploadPage({ productIds }: BulkUploadProps) {
@@ -47,8 +86,9 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string[] }>({})
 
   useEffect(() => {
     // Get username from token
@@ -74,17 +114,24 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
           throw new Error("No product data received from API")
         }
 
-        setTotalPages(response.page.totalPages);
+        setTotalPages(response.page.totalPages)
 
         // Convert API product data to the format used in this component
         const formattedProducts: Product[] = response.content.map((apiProduct) => ({
           id: `prod-${apiProduct.productId}`,
           name: apiProduct.productName,
-          existingImages: apiProduct.images.map((url, index) => ({
-            id: `img-<span class="math-inline">\{apiProduct\.productId\}\-</span>{index}`,
-            url: url,
-            filename: `product${apiProduct.productId}_image${index + 1}.jpg`,
-          })),
+          existingImages: apiProduct.images.map((url, index) => {
+            // Extract the actual filename from the URL
+            const urlParts = url.split("/")
+            const filename = urlParts[urlParts.length - 1]
+
+            return {
+              id: `img-${apiProduct.productId}-${index}`,
+              url: url,
+              // Use the actual filename from the URL if available, otherwise fallback to the default
+              filename: filename || `product${apiProduct.productId}_image${index + 1}.jpg`,
+            }
+          }),
           newImages: [],
           imagesToDelete: [],
         }))
@@ -104,7 +151,7 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
         console.error("Error fetching products:", error)
         setIsLoading(false)
       })
-  }, [page])
+  }, [page, productIds])
 
   const handleProductSelect = (product: Product) => {
     if (selectedProducts.some((p) => p.id === product.id)) {
@@ -121,7 +168,62 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
     }
   }
 
+  const validateFiles = (productId: string, files: FileList): File[] => {
+    const validFiles: File[] = []
+    const errors: string[] = []
+
+    // Convert FileList to array for validation
+    const fileArray = Array.from(files)
+
+    // Validate each file
+    for (const file of fileArray) {
+      try {
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+          errors.push(`${file.name}: File size exceeds 1MB limit`)
+          continue
+        }
+
+        // Check file type
+        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+          errors.push(`${file.name}: Unsupported file format (only JPEG, PNG, and WebP are allowed)`)
+          continue
+        }
+
+        // File passed validation
+        validFiles.push(file)
+      } catch (error) {
+        errors.push(`${file.name}: Unknown error occurred`)
+      }
+    }
+
+    // Update validation errors state
+    if (errors.length > 0) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [productId]: errors,
+      }))
+
+      // Show toast with first error
+      toastNotification("Validation Error", errors[0])
+    } else {
+      // Clear errors for this product if there were any
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[productId]
+        return newErrors
+      })
+    }
+
+    return validFiles
+  }
+
   const handleImageSelect = (productId: string, files: FileList) => {
+    // Validate files first
+    const validFiles = validateFiles(productId, files)
+
+    if (validFiles.length === 0) return // No valid files to add
+
     setSelectedProducts(
       selectedProducts.map((product) => {
         if (product.id === productId) {
@@ -133,12 +235,15 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
           // Calculate how many more images we can add
           const remainingSlots = 5 - currentImageCount
 
-          if (remainingSlots <= 0) return product
+          if (remainingSlots <= 0) {
+            toastNotification("Maximum images reached", "You can only have 5 images per product")
+            return product
+          }
 
-          // Convert FileList to array and add to new images (up to remaining slots)
+          // Add valid files up to remaining slots
           const newImages = [...product.newImages]
-          for (let i = 0; i < files.length && newImages.length < product.newImages.length + remainingSlots; i++) {
-            newImages.push(files[i])
+          for (let i = 0; i < validFiles.length && newImages.length < product.newImages.length + remainingSlots; i++) {
+            newImages.push(validFiles[i])
           }
 
           return { ...product, newImages }
@@ -146,6 +251,22 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
         return product
       }),
     )
+  }
+
+  // TODO: UI
+  // Change the view and delete button to be compatible with phone
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e: React.DragEvent, productId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleImageSelect(productId, e.dataTransfer.files)
+    }
   }
 
   const removeNewImage = (productId: string, index: number) => {
@@ -191,11 +312,6 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
     setPreviewOpen(true)
   }
 
-  const closeImagePreview = () => {
-    setPreviewOpen(false)
-    setPreviewImage(null)
-  }
-
   const getTotalImagesCount = (product: Product) => {
     // Count existing images not marked for deletion + new images
     return (
@@ -210,16 +326,47 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
   const hasChanges = (product: Product) => {
     return product.newImages.length > 0 || product.imagesToDelete.length > 0
   }
+
+  const validateBeforeUpload = (): boolean => {
+    try {
+      // Validate product IDs
+      const productIdsToValidate = selectedProducts
+        .filter(hasChanges)
+        .map((product) => Number.parseInt(product.id.replace("prod-", "")))
+
+      validationSchema.validateSync(
+        {
+          productId: productIdsToValidate,
+          files: selectedProducts.flatMap((product) => product.newImages),
+        },
+        { abortEarly: false },
+      )
+
+      return true
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        // Show validation error
+        toastNotification("Validation Error", error.errors[0])
+      }
+      return false
+    }
+  }
+
   const uploadImages = async () => {
+    // Validate before upload
+    if (!validateBeforeUpload()) {
+      return
+    }
+
     if (!username) {
-      alert("Username not found. Please log in again.")
+      toastNotification("Authentication Error", "Username not found. Please log in again.")
       return
     }
 
     // Get token from localStorage
     const token = localStorage.getItem("token")
     if (!token) {
-      alert("Authentication token not found. Please log in again.")
+      toastNotification("Authentication Error", "Authentication token not found. Please log in again.")
       return
     }
 
@@ -234,49 +381,118 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
     }))
     setUploadStatus(initialStatus)
 
+    // NOTE: Delete images
+
     // Upload images for each product with changes
     for (const product of productsWithChanges) {
       // Update status to uploading
       setUploadStatus((prev) =>
         prev.map((status) =>
-          status.productId === product.id ? { ...status, status: "uploading", progress: 10 } : status
-        )
+          status.productId === product.id ? { ...status, status: "uploading", progress: 10 } : status,
+        ),
       )
 
       try {
-        const formData = new FormData()
-        let fileIndex = 1;
+        let deletionSuccess = true
 
-        // Add each new image to form data with the product ID as the key
-        for (const image of product.newImages) {
-          formData.append(`file${fileIndex}`, image);
-          formData.append(`productId${fileIndex}`, product.id.replace('prod-', ''));
-          fileIndex++;
-        }
-
-        // Add list of images to delete (if any)
+        // Handle image deletions first
         if (product.imagesToDelete.length > 0) {
-          // In a real implementation, you might need to adjust how you send this information
-          // depending on your API requirements
-          formData.append("imagesToDelete", JSON.stringify(product.imagesToDelete))
+          // Update progress
+          setUploadStatus((prev) =>
+            prev.map((status) => (status.productId === product.id ? { ...status, progress: 20 } : status)),
+          )
+
+          const productIdRaw = Number.parseInt(product.id.replace("prod-", ""), 10)
+
+          // Extract actual filenames for deletion (not IDs)
+          const filenames = product.imagesToDelete
+            .map((imageId) => {
+              const imageToDelete = product.existingImages.find((img) => img.id === imageId)
+              return imageToDelete ? imageToDelete.filename : null
+            })
+            .filter((filename): filename is string => filename !== null)
+            .map((filename) => filename.split("?")[0]);
+
+          if (filenames.length > 0) {
+            const requestBody = {
+              productIds: [productIdRaw],
+              images: filenames,
+            }
+
+            console.log("Deletion request body:", requestBody)
+
+            try {
+              // Make the DELETE request
+              // WARN: Backend URL
+              const deleteResponse = await fetch(`http://localhost:8080/seller/${username}/productIds/images`, {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(requestBody),
+              })
+
+              if (!deleteResponse.ok) {
+                deletionSuccess = false
+                throw new Error(`Failed to delete images: ${deleteResponse.status}`)
+              }
+
+              // Update progress after successful deletion
+              setUploadStatus((prev) =>
+                prev.map((status) => (status.productId === product.id ? { ...status, progress: 40 } : status)),
+              )
+            } catch (error) {
+              deletionSuccess = false
+              console.error("Error deleting images:", error)
+              throw error // Re-throw to be caught by the outer try/catch
+            }
+          }
         }
 
-        // Update progress
-        setUploadStatus((prev) =>
-          prev.map((status) => (status.productId === product.id ? { ...status, progress: 50 } : status))
-        )
+        // Handle new image uploads
+        let uploadSuccess = true
+        if (product.newImages.length > 0) {
+          const formData = new FormData()
+          let fileIndex = 1
 
-        // Make the API request
-        const response = await fetch(`http://localhost:8080/seller/${username}/product/images`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        })
+          // Add each new image to form data with the product ID as the key
+          for (const image of product.newImages) {
+            formData.append(`file${fileIndex}`, image)
+            formData.append(`productId${fileIndex}`, product.id.replace("prod-", ""))
+            fileIndex++
+          }
 
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`)
+          // Update progress
+          setUploadStatus((prev) =>
+            prev.map((status) => (status.productId === product.id ? { ...status, progress: 60 } : status)),
+          )
+
+          try {
+            // Make the API request
+            // WARN: Backend URL
+            const response = await fetch(`http://localhost:8080/seller/${username}/product/images`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              body: formData,
+            })
+
+            if (!response.ok) {
+              uploadSuccess = false
+              throw new Error(`Error uploading images: ${response.status}`)
+            }
+
+            // Update progress after successful upload
+            setUploadStatus((prev) =>
+              prev.map((status) => (status.productId === product.id ? { ...status, progress: 80 } : status)),
+            )
+          } catch (error) {
+            uploadSuccess = false
+            console.error("Error uploading images:", error)
+            throw error // Re-throw to be caught by the outer try/catch
+          }
         }
 
         // Update status to success
@@ -284,24 +500,42 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
           prev.map((status) =>
             status.productId === product.id
               ? { ...status, status: "success", progress: 100, message: "Upload complete" }
-              : status
-          )
+              : status,
+          ),
         )
+
+        // Only update the UI if both deletion and upload were successful
+        if (deletionSuccess && uploadSuccess) {
+          // Clear the changes for this product after successful upload/deletion
+          setSelectedProducts((prev) =>
+            prev.map((p) =>
+              p.id === product.id
+                ? {
+                    ...p,
+                    newImages: [],
+                    imagesToDelete: [],
+                    // Remove deleted images from existingImages
+                    existingImages: p.existingImages.filter((img) => !p.imagesToDelete.includes(img.id)),
+                  }
+                : p,
+            ),
+          )
+        }
       } catch (error) {
-        console.error(`Error uploading images for product ${product.id}:`, error)
+        console.error(`Error processing images for product ${product.id}:`, error)
 
         // Update status to error
         setUploadStatus((prev) =>
           prev.map((status) =>
             status.productId === product.id
               ? {
-                ...status,
-                status: "error",
-                progress: 100,
-                message: error instanceof Error ? error.message : "Upload failed",
-              }
-              : status
-          )
+                  ...status,
+                  status: "error",
+                  progress: 100,
+                  message: error instanceof Error ? error.message : "Upload failed",
+                }
+              : status,
+          ),
         )
       }
     }
@@ -340,15 +574,16 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                 <CardDescription>Select products to manage images</CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[380px] pr-4">
+                <ScrollArea className="h-[380px]">
                   <div className="space-y-2">
                     {products.map((product) => (
                       <div
                         key={product.id}
-                        className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedProducts.some((p) => p.id === product.id)
-                          ? "bg-primary/10 border border-primary"
-                          : "border hover:bg-muted"
-                          }`}
+                        className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${
+                          selectedProducts.some((p) => p.id === product.id)
+                            ? "bg-primary/10 border border-primary"
+                            : "border hover:bg-muted"
+                        }`}
                         onClick={() => handleProductSelect(product)}
                       >
                         <div className="flex flex-col">
@@ -371,31 +606,20 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious
-                        href="#"
-                        onClick={() => setPage(Math.max(0, page - 1))}
-                      />
+                      <PaginationPrevious href="#" onClick={() => setPage(Math.max(0, page - 1))} />
                     </PaginationItem>
                     {Array.from({ length: totalPages }, (_, i) => i).map((index) => (
                       <PaginationItem key={index}>
-                        <PaginationLink
-                          href="#"
-                          isActive={index === page}
-                          onClick={() => setPage(index)}
-                        >
+                        <PaginationLink href="#" isActive={index === page} onClick={() => setPage(index)}>
                           {index + 1}
                         </PaginationLink>
                       </PaginationItem>
                     ))}
                     <PaginationItem>
-                      <PaginationNext
-                        href="#"
-                        onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
-                      />
+                      <PaginationNext href="#" onClick={() => setPage(Math.min(totalPages - 1, page + 1))} />
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>
-
               </CardFooter>
             </Card>
           </div>
@@ -409,19 +633,20 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
               <CardContent>
                 {selectedProducts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-[400px] border border-dashed rounded-md p-8 text-center">
-                    <Upload className="h-10 w-10 text-muted-foreground mb-4" />
+                    <Image className="h-10 w-10 text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium">No products selected</h3>
                     <p className="text-sm text-muted-foreground mt-2">
                       Select products from the left panel to manage their images
                     </p>
                   </div>
                 ) : (
-                  <ScrollArea className="h-[400px] pr-4">
+                  <ScrollArea className="h-[400px]">
                     <div className="space-y-6">
                       {selectedProducts.map((product) => {
                         const status = uploadStatus.find((s) => s.productId === product.id)
                         const totalImages = getTotalImagesCount(product)
                         const remainingSlots = getRemainingSlots(product)
+                        const productErrors = validationErrors[product.id] || []
 
                         return (
                           <div key={product.id} className="border rounded-md p-4">
@@ -429,6 +654,20 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                               <h3 className="font-medium">{product.name}</h3>
                               <Badge variant={totalImages > 0 ? "default" : "outline"}>{totalImages}/5 images</Badge>
                             </div>
+
+                            {productErrors.length > 0 && (
+                              <Alert variant="destructive" className="mb-4">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Validation Errors</AlertTitle>
+                                <AlertDescription>
+                                  <ul className="list-disc pl-4 text-sm">
+                                    {productErrors.map((error, index) => (
+                                      <li key={index}>{error}</li>
+                                    ))}
+                                  </ul>
+                                </AlertDescription>
+                              </Alert>
+                            )}
 
                             {status?.status === "error" && (
                               <Alert variant="destructive" className="mb-4">
@@ -467,8 +706,9 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                     return (
                                       <div key={image.id + image.filename} className="relative group">
                                         <div
-                                          className={`aspect-square rounded-md border overflow-hidden ${isMarkedForDeletion ? "opacity-40" : ""
-                                            }`}
+                                          className={`aspect-square rounded-md border overflow-hidden ${
+                                            isMarkedForDeletion ? "opacity-40" : ""
+                                          }`}
                                         >
                                           <img
                                             id={image.filename + image.id}
@@ -495,10 +735,11 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                               e.stopPropagation()
                                               toggleExistingImageDelete(product.id, image.id)
                                             }}
-                                            className={`${isMarkedForDeletion
-                                              ? "bg-primary text-primary-foreground opacity-100"
-                                              : "bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100"
-                                              } rounded-full p-1 transition-opacity`}
+                                            className={`${
+                                              isMarkedForDeletion
+                                                ? "bg-primary text-primary-foreground opacity-100"
+                                                : "bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100"
+                                            } rounded-full p-1 transition-opacity`}
                                             disabled={isUploading}
                                           >
                                             {isMarkedForDeletion ? (
@@ -515,6 +756,11 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                             </span>
                                           </div>
                                         )}
+                                        <div className="absolute bottom-1 left-1 right-1">
+                                          <div className="text-xs bg-background/80 text-foreground px-2 py-1 rounded truncate">
+                                            {image.filename}
+                                          </div>
+                                        </div>
                                       </div>
                                     )
                                   })}
@@ -545,6 +791,11 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                       >
                                         <X className="h-3 w-3" />
                                       </button>
+                                      <div className="absolute bottom-1 left-1 right-1">
+                                        <div className="text-xs bg-background/80 text-foreground px-2 py-1 rounded truncate">
+                                          {image.name} ({(image.size / 1024).toFixed(1)} KB)
+                                        </div>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
@@ -557,38 +808,59 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                 <h4 className="text-sm font-medium mb-2">
                                   Add New Images ({remainingSlots} slot{remainingSlots !== 1 ? "s" : ""} remaining)
                                 </h4>
-                                <div className="flex items-center gap-3">
-                                  <label className="aspect-square w-20 h-20 rounded-md border border-dashed flex flex-col items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors">
-                                    <Upload className="h-6 w-6 text-muted-foreground mb-1" />
-                                    <span className="text-xs text-muted-foreground">Add</span>
-                                    <input
-                                      type="file"
-                                      accept="image/*"
-                                      multiple
-                                      className="hidden"
-                                      onChange={(e) => e.target.files && handleImageSelect(product.id, e.target.files)}
-                                      disabled={isUploading || remainingSlots <= 0}
-                                    />
-                                  </label>
-
-                                  <div className="flex-1">
-                                    <label className="cursor-pointer">
-                                      <Button variant="outline" size="sm" disabled={remainingSlots <= 0 || isUploading}>
-                                        <Upload className="h-4 w-4 mr-2" />
-                                        Select Images
-                                      </Button>
-                                      <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        className="hidden"
-                                        onChange={(e) =>
-                                          e.target.files && handleImageSelect(product.id, e.target.files)
-                                        }
-                                        disabled={remainingSlots <= 0 || isUploading}
-                                      />
-                                    </label>
+                                <div
+                                  className="border-2 border-dashed rounded-md p-4 mb-3 transition-colors hover:bg-muted/50"
+                                  onDragOver={handleDragOver}
+                                  onDrop={(e) => handleDrop(e, product.id)}
+                                >
+                                  <div className="flex flex-col items-center justify-center gap-2">
+                                    <Upload className="h-8 w-8 text-muted-foreground" />
+                                    <p className="text-sm text-center">
+                                      Drag & drop images here, or{" "}
+                                      <label className="text-primary cursor-pointer hover:underline">
+                                        browse
+                                        <input
+                                          type="file"
+                                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                                          multiple
+                                          className="hidden"
+                                          onChange={(e) =>
+                                            e.target.files && handleImageSelect(product.id, e.target.files)
+                                          }
+                                          disabled={isUploading || remainingSlots <= 0}
+                                        />
+                                      </label>
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Max 1MB per image. Supported formats: JPG, PNG, WebP
+                                    </p>
                                   </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={remainingSlots <= 0 || isUploading}
+                                    onClick={() => {
+                                      // Find the file input and trigger a click
+                                      const fileInput = document.getElementById(
+                                        `file-input-${product.id}`,
+                                      ) as HTMLInputElement
+                                      if (fileInput) fileInput.click()
+                                    }}
+                                  >
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Select Images
+                                  </Button>
+                                  <input
+                                    id={`file-input-${product.id}`}
+                                    type="file"
+                                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                                    multiple
+                                    className="hidden"
+                                    onChange={(e) => e.target.files && handleImageSelect(product.id, e.target.files)}
+                                    disabled={remainingSlots <= 0 || isUploading}
+                                  />
                                 </div>
                               </div>
                             )}
@@ -648,7 +920,7 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
           {previewImage && (
             <div className="flex items-center justify-center p-2">
               <img
-                src={previewImage || "https://placehold.co/400x400.jpeg"}
+                src={previewImage || "/placeholder.svg"}
                 alt="Preview"
                 className="max-h-[70vh] max-w-full object-contain"
               />
