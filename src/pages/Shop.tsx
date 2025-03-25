@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -207,8 +206,8 @@ const Shop = () => {
 
   return (
     <>
-      <div className="flex justify-between">
-        <div className="flex">
+      <div className="flex justify-between flex-wrap xl:mx-2 2xl:mx-[10%]">
+        <div className="flex flex-wrap-reverse">
           <Drawer open={filterOpen} onOpenChange={setFilterOpen}>
             <DrawerTrigger asChild>
               <Button variant="outline" className="m-2">
@@ -484,10 +483,12 @@ const Shop = () => {
                 </CardFooter>
               </Link>
             </Card>
-          )) : <>
-            <h3 className="font-integralcf text-center">No product found!</h3>
-          </>}
+          )) : null}
         </div>
+        {sortedData.length <= 0 ?
+          <>
+          <h3 className="font-integralcf text-center">No product found</h3>
+        </> : null}
       </div>
       <Pagination>
         <PaginationContent>

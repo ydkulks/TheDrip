@@ -111,7 +111,7 @@ const ViewProduct = () => {
                 {data.images.map((image, index) => (
                   <button
                     key={index}
-                    className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md m-2 border ${selectedImage === index ? "ring-2 ring-primary" : ""
+                    className={`relative h-12 w-12 md:h-20 md:w-20 flex-shrink-0 overflow-hidden rounded-md m-2 border ${selectedImage === index ? "ring-2 ring-primary" : ""
                       }`}
                     onClick={() => setSelectedImage(index)}
                   >

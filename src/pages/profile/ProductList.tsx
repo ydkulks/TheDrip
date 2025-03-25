@@ -62,6 +62,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useGrabScroll } from "@/components/hooks/use-grab-scroll";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/components/hooks/use-mobile";
 
 async function deleteProduct(id: number[]) {
   const token = localStorage.getItem("token");
@@ -472,6 +473,7 @@ export default function ProductList() {
     }
   };
 
+  const isMobile = useIsMobile();
   return (
     <>
       <div className="flex flex-wrap justify-between">
@@ -479,7 +481,7 @@ export default function ProductList() {
           <Drawer open={filterOpen} onOpenChange={setFilterOpen}>
             <DrawerTrigger asChild>
               <Button variant="outline" className="m-2">
-                <Filter /> Filter
+                <Filter /> {isMobile ? null : "Filter"}
               </Button>
             </DrawerTrigger>
             <DrawerContent className="m-2">

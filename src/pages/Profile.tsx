@@ -21,7 +21,7 @@ const Profile = () => {
           <div className="flex sticky top-0 z-30 items-center p-2 w-full border-b gap-2">
             <SidebarTrigger />
             <Separator orientation="vertical" className="mr-2 h-4"/>
-            <Breadcrumb className="hidden md:block">
+            <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <Link to="/">

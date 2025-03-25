@@ -18,6 +18,7 @@ import {
   CircleUserRound,
   PanelsTopLeft,
   Truck,
+  Menu,
 } from "lucide-react"
 import {
   CommandDialog,
@@ -35,6 +36,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Sheet, SheetContent, SheetFooter, SheetTrigger } from "./components/ui/sheet.tsx"
+import { SheetNavUser } from "./components/nav-user.tsx"
+import { tokenDetails } from "./components/utils.tsx"
 
 interface CommandPaletteState {
   open: boolean;
@@ -126,11 +130,24 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
 
 const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
   open;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  interface user {
+    name: string
+    role: string
+    email: string
+    avatar: string
+  }
+  const userData: user = {
+    name: tokenDetails().sub,
+    role: tokenDetails().role,
+    email: tokenDetails().email,
+    avatar: 'https://github.com/shadcn.png',
+  };
   return (
 
-    <nav className="flex justify-between py-5 px-8 text-sm lg:px-[10%]">
+    <nav className="flex justify-between py-5 px-2 text-sm xl:px-2 2xl:px-[10%]">
       <div className="flex justify-start gap-5">
-        <h2 className="font-integralcf font-extrabold text-2xl">
+        <h2 className="font-integralcf font-extrabold text-xl md:text-2xl">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -144,7 +161,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
             </Tooltip>
           </TooltipProvider>
         </h2>
-        <div className="flex justify-start gap-3 pt-1">
+        <div className="hidden md:flex justify-start gap-3 pt-1">
           <Link to="/shop" className="hover:underline">Shop</Link>
           <Link to="/shop" className="hover:underline">On Sale</Link>
           <Link to="/shop" className="hover:underline">New Arrivals</Link>
@@ -155,8 +172,13 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Button onClick={() => { setOpen((open) => !open) }} variant="outline" className="rounded-full text-gray-500 hover:text-gray-500">
-                <Search />Search... <code className="bg-gray-200 text-gray-500 border px-1 rounded-md">⌘ P</code>
+              <Button
+                onClick={() => { setOpen((open) => !open) }}
+                variant="outline"
+                className="rounded-full text-gray-500 hover:text-gray-500">
+                <Search />
+                <span className="hidden md:inline">Search...</span>
+                <code className="hidden md:inline bg-gray-200 text-gray-500 border px-1 rounded-md">⌘ P</code>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -167,7 +189,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Link to="/">
+              <Link to="/" className="hidden md:inline">
                 <Button variant="ghost" size="icon"><ShoppingCart /></Button>
               </Link>
             </TooltipTrigger>
@@ -179,7 +201,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Link to="/">
+              <Link to="/" className="hidden md:inline">
                 <Button variant="ghost" size="icon"><Truck /></Button>
               </Link>
             </TooltipTrigger>
@@ -191,7 +213,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Link to="/profile" >
+              <Link to="/profile" className="hidden md:inline" >
                 <Button variant="ghost" size="icon"><CircleUserRound /></Button>
               </Link>
             </TooltipTrigger>
@@ -200,6 +222,54 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+        {/* Mobile Menu Button */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="md:hidden">
+              <Menu />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right">
+            <div className="flex flex-col h-[97%]">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-integralcf font-extrabold text-xl md:text-2xl">THE DRIP.</h2>
+              </div>
+              <div className="text-sm gap-8">
+                <Link to="/shop" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                  <ShoppingBag size="16" />
+                  Shop
+                </Link>
+                <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                  <ShoppingBag size="16" />
+                  On Sale
+                </Link>
+                <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                  <ShoppingBag size="16" />
+                  New Arrivals
+                </Link>
+                <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                  <ShoppingBag size="16" />
+                  Categories
+                </Link>
+                <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                  <ShoppingCart size="16" />
+                  Cart
+                </Link>
+                <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                  <Truck size="16" />
+                  Order
+                </Link>
+                <Link to="/profile" className="flex text-sm gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                  <CircleUserRound size="16" />
+                  Profile
+                </Link>
+              </div>
+            </div>
+            <SheetFooter>
+              <SheetNavUser user={userData} />
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
       </div>
     </nav>
   )
