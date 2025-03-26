@@ -39,6 +39,7 @@ import {
 import { Sheet, SheetContent, SheetFooter, SheetTrigger } from "./components/ui/sheet.tsx"
 import { SheetNavUser } from "./components/nav-user.tsx"
 import { tokenDetails } from "./components/utils.tsx"
+import Cart from "./pages/Cart.tsx"
 
 interface CommandPaletteState {
   open: boolean;
@@ -189,7 +190,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Link to="/" className="hidden md:inline">
+              <Link to="/cart" className="hidden md:inline">
                 <Button variant="ghost" size="icon"><ShoppingCart /></Button>
               </Link>
             </TooltipTrigger>
@@ -251,7 +252,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
                   <ShoppingBag size="16" />
                   Categories
                 </Link>
-                <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/cart" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <ShoppingCart size="16" />
                   Cart
                 </Link>
@@ -310,6 +311,7 @@ function App() {
         <Route path="/profile/*" element={<Profile />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/shop/view-product" element={<ViewProduct />} />
+        <Route path="/cart" element={<Cart />} />
       </Routes>
 
       <Toaster />

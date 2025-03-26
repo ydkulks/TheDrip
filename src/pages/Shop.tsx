@@ -1,3 +1,4 @@
+import { useIsMobile } from "@/components/hooks/use-mobile";
 import { Product } from "@/components/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -204,6 +205,8 @@ const Shop = () => {
     setFilterOpen(false);
   }
 
+  const isMobile = useIsMobile();
+
   return (
     <>
       <div className="flex justify-between flex-wrap xl:mx-2 2xl:mx-[10%]">
@@ -211,7 +214,7 @@ const Shop = () => {
           <Drawer open={filterOpen} onOpenChange={setFilterOpen}>
             <DrawerTrigger asChild>
               <Button variant="outline" className="m-2">
-                <Filter /> Filter
+                <Filter /> {isMobile ? null : "Filter"}
               </Button>
             </DrawerTrigger>
             <DrawerContent className="m-2">
@@ -365,7 +368,7 @@ const Shop = () => {
           <Input
             type="text"
             placeholder="Search..."
-            className="w-64 m-2"
+            className="w-52 md:w-64 m-2"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => {

@@ -75,9 +75,16 @@
             - [x] Basic UI
             - [ ] Product reviews
                 - [ ] View reviews
+                - [ ] Rating
                 - [ ] Submit review
         - [ ] Cart
-        - [ ] Order
+            - [x] Display items
+            - [x] View product
+            - [ ] Update quantity
+            - [ ] Delete item
+            - [ ] Apply Discount
+            - [ ] Coupon Code
+        - [ ] Checkout
     - [ ] Admin features
         - [ ] Create Users with temp credentials
         - [ ] Manage Products for other users

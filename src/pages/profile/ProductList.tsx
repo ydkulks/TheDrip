@@ -635,7 +635,7 @@ export default function ProductList() {
           <Input
             type="text"
             placeholder="Search..."
-            className="w-64 m-2"
+            className="w-60 my-2 ml-0 md:w-64"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => {
@@ -644,7 +644,7 @@ export default function ProductList() {
               }
             }}
           />
-          <Button variant="outline" className="m-2 ml-0" onClick={handleSearch}>
+          <Button variant="outline" className="m-2" onClick={handleSearch}>
             <Search />
           </Button>
         </div>
@@ -652,7 +652,7 @@ export default function ProductList() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto m-2">
-                <Columns />Columns <ChevronDown />
+                <Columns />{isMobile ? null : "Columns"} <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

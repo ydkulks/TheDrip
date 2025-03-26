@@ -21,3 +21,36 @@ export type ApiResponse = {
     totalPages: number;
   };
 };
+
+type Cart = {
+  cart_id: number;
+  user: string;
+}
+
+type CartProduct = {
+  productId: number;
+  productName: string;
+  category: string;
+  series: string;
+  image: string;
+  price: number;
+}
+
+type CartItem = {
+  cart_item_id: number;
+  cart: Cart;
+  product: CartProduct;
+  quantity: number;
+  color: string;
+  size: string;
+}
+
+export type CartResponse = {
+  content: CartItem[];
+  page: {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+  };
+};

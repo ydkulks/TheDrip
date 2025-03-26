@@ -4,11 +4,47 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { emptyProduct, formatName, formatSize, getProduct, toastNotification } from "@/components/utils";
+import { emptyProduct, formatName, formatSize, getCurrentTime, getProduct, prodSpecs, toastNotification, tokenDetails } from "@/components/utils";
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
+async function addToCartRequest(
+  userId: number,
+  productId: number,
+  quantity: number,
+  color: number,
+  size: number
+) {
+  const url = new URL('http://localhost:8080/customer/items');
+  userId ? url.searchParams.append('userId', userId.toString()) : null;
+  productId ? url.searchParams.append('productId', productId.toString()) : null;
+  quantity ? url.searchParams.append('quantity', quantity.toString()) : null;
+  color ? url.searchParams.append('color', color.toString()) : null;
+  size ? url.searchParams.append('size', size.toString()) : null;
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json', // Optional, but good practice
+      },
+    });
+
+    if (response.status !== 201) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // const data = await response;
+    return response;
+  } catch (error) {
+    console.error('Error fetching cart data:', error);
+    toastNotification("Could not add to cart!", getCurrentTime())
+    throw error; // Re-throw the error to be handled by the calling component
+  }
+}
 const ViewProduct = () => {
   const [searchParams] = useSearchParams();
   const productIdParam = searchParams.get('productId');
@@ -19,6 +55,8 @@ const ViewProduct = () => {
   const [selectedSize, setSelectedSize] = useState(data?.sizes[2] || data?.sizes[0])
   const [selectedColor, setSelectedColor] = useState(data?.colors[0])
   const [quantity, setQuantity] = useState(0)
+
+  const [prodSpecsData, _setProdSpecsData] = useState(prodSpecs);
 
   let productId: number | null = null;
 
@@ -67,10 +105,27 @@ const ViewProduct = () => {
     setSelectedImage((prev) => (prev === data.images.length - 1 ? 0 : prev + 1))
   }
   const handleAddToCart = () => {
-    toastNotification(
-      "Added to cart",
-      `${quantity} ${data.productName} (${formatName(selectedColor)}, ${formatName(selectedSize)}) added to your cart.`,
-    )
+    const colorId: number | null = prodSpecsData.colors
+      .find(color => selectedColor === color.color_name)?.color_id || null;
+    const sizeId: number | null = prodSpecsData.sizes
+      .find(size => selectedSize === size.size_name)?.size_id || null;
+
+    if (typeof productId === "number" && colorId != null && sizeId != null) {
+      addToCartRequest(tokenDetails().id, productId, quantity, colorId, sizeId)
+        .then(_response => {
+          // console.log("Response: ", _response);
+          toastNotification(
+            "Added to cart",
+            `${quantity} ${data.productName} (${formatName(selectedColor)}, ${formatName(selectedSize)}) added to your cart.`,
+          )
+        })
+    } else {
+      console.log("Cart Details: ", tokenDetails().id, productId, colorId, sizeId, quantity)
+      toastNotification(
+        "Invalid Cart Data!",
+        getCurrentTime()
+      )
+    }
   }
   const handleBuyNow = async () => {
     toastNotification("Processing payment", "Redirecting to Stripe checkout...",)
