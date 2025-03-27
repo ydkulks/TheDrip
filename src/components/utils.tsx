@@ -325,3 +325,41 @@ export const updateProducts = async (products: any | UpdateProductType[]) => {
     throw error;
   }
 };
+
+export async function addOrUpdateCartRequest(
+  userId: number,
+  productId: number,
+  quantity: number,
+  color: number,
+  size: number,
+  method: 'POST' | 'PUT'
+) {
+  const url = new URL('http://localhost:8080/customer/items');
+  userId ? url.searchParams.append('userId', userId.toString()) : null;
+  productId ? url.searchParams.append('productId', productId.toString()) : null;
+  quantity ? url.searchParams.append('quantity', quantity.toString()) : null;
+  color ? url.searchParams.append('color', color.toString()) : null;
+  size ? url.searchParams.append('size', size.toString()) : null;
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(url, {
+      method: method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json', // Optional, but good practice
+      },
+    });
+
+    if (response.status !== 201) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // const data = await response;
+    return response;
+  } catch (error) {
+    console.error('Error fetching cart data:', error);
+    toastNotification("Could not process cart request!", getCurrentTime())
+    throw error; // Re-throw the error to be handled by the calling component
+  }
+}

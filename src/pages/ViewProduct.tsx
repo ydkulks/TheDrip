@@ -4,47 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { emptyProduct, formatName, formatSize, getCurrentTime, getProduct, prodSpecs, toastNotification, tokenDetails } from "@/components/utils";
+import { addOrUpdateCartRequest, emptyProduct, formatName, formatSize, getCurrentTime, getProduct, prodSpecs, toastNotification, tokenDetails } from "@/components/utils";
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-async function addToCartRequest(
-  userId: number,
-  productId: number,
-  quantity: number,
-  color: number,
-  size: number
-) {
-  const url = new URL('http://localhost:8080/customer/items');
-  userId ? url.searchParams.append('userId', userId.toString()) : null;
-  productId ? url.searchParams.append('productId', productId.toString()) : null;
-  quantity ? url.searchParams.append('quantity', quantity.toString()) : null;
-  color ? url.searchParams.append('color', color.toString()) : null;
-  size ? url.searchParams.append('size', size.toString()) : null;
-
-  try {
-    const token = localStorage.getItem("token");
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json', // Optional, but good practice
-      },
-    });
-
-    if (response.status !== 201) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    // const data = await response;
-    return response;
-  } catch (error) {
-    console.error('Error fetching cart data:', error);
-    toastNotification("Could not add to cart!", getCurrentTime())
-    throw error; // Re-throw the error to be handled by the calling component
-  }
-}
 const ViewProduct = () => {
   const [searchParams] = useSearchParams();
   const productIdParam = searchParams.get('productId');
@@ -111,7 +75,7 @@ const ViewProduct = () => {
       .find(size => selectedSize === size.size_name)?.size_id || null;
 
     if (typeof productId === "number" && colorId != null && sizeId != null) {
-      addToCartRequest(tokenDetails().id, productId, quantity, colorId, sizeId)
+      addOrUpdateCartRequest(tokenDetails().id, productId, quantity, colorId, sizeId, "POST")
         .then(_response => {
           // console.log("Response: ", _response);
           toastNotification(

@@ -1,105 +1,32 @@
-/*import { tokenDetails } from "@/components/utils";
-import { useEffect, useState } from "react";
-
-async function fetchCartData(
-  page: number,
-  size: number,
-  userId: number,
-  productName?: string,
-  colorId?: number,
-  sizeId?: number,
-  sortBy?: string,
-  sortDirection?: string,
-) {
-  const url = new URL('http://localhost:8080/customer/items');
-  userId ? url.searchParams.append('userId', userId.toString()) : null;
-  productName ? url.searchParams.append('productName', productName) : null;
-  colorId ? url.searchParams.append('colorId', colorId.toString()) : null;
-  sizeId ? url.searchParams.append('sizeId', sizeId.toString()) : null;
-  sortBy ? url.searchParams.append('sortBy', sortBy) : null;
-  sortDirection ? url.searchParams.append('sortDirection', sortDirection) : null;
-  page ? url.searchParams.append('page', page.toString()) : null;
-  size ? url.searchParams.append('size', size.toString()) : null;
-
-  try {
-    const token = localStorage.getItem("token");
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json', // Optional, but good practice
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching cart data:', error);
-    throw error; // Re-throw the error to be handled by the calling component
-  }
-};
-export default function Cart() {
-  // TODO: Type safe the cart items
-  const [cartItems, setCartItems] = useState<any | null>(null);
-  useEffect(() => {
-    fetchCartData(0, 10, tokenDetails().id)
-    // fetchCartData(0, 10, 2)
-      .then(response => {
-        setCartItems(response);
-      })
-  }, [])
-  return (
-    <>
-    {cartItems ? cartItems.content.map(item => (
-      <p>{item.product.productName}</p>
-    )):null}
-    </>
-  )
-}
-*/
 import { useEffect, useState } from "react"
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
-import { formatName, formatSize, tokenDetails } from "@/components/utils"
+import {
+  addOrUpdateCartRequest,
+  formatName,
+  formatSize,
+  getCurrentTime,
+  prodSpecs,
+  syncProductSpecifications,
+  toastNotification,
+  tokenDetails
+} from "@/components/utils"
 
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Link } from "react-router-dom"
 import { CartResponse } from "@/components/types"
-
-// Define the CartItem type based on your API response
-// interface Product {
-//   productId: number
-//   productName: string
-//   price: number
-//   imageUrl: string
-// }
-
-// interface CartItem {
-//   id: number
-//   product: Product
-//   quantity: number
-//   size: {
-//     id: number
-//     name: string
-//   }
-//   color: {
-//     id: number
-//     name: string
-//   }
-// }
-
-// interface CartResponse {
-//   content: CartItem[]
-//   totalElements: number
-//   totalPages: number
-//   size: number
-//   number: number
-// }
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 
 async function fetchCartData(
   page: number,
@@ -111,6 +38,7 @@ async function fetchCartData(
   sortBy?: string,
   sortDirection?: string,
 ) {
+  // WARN: Backend URL
   const url = new URL("http://localhost:8080/customer/items")
   userId ? url.searchParams.append("userId", userId.toString()) : null
   productName ? url.searchParams.append("productName", productName) : null
@@ -143,46 +71,29 @@ async function fetchCartData(
   }
 }
 
-// Function to update cart item quantity
-async function updateCartItemQuantity(itemId: number, quantity: number) {
-  try {
-    const token = localStorage.getItem("token")
-    const response = await fetch(`http://localhost:8080/customer/items/${itemId}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ quantity }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error updating cart item:", error)
-    throw error
-  }
-}
 
 // Function to remove cart item
 async function removeCartItem(itemId: number) {
   try {
     const token = localStorage.getItem("token")
-    const response = await fetch(`http://localhost:8080/customer/items/${itemId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    if (itemId > 0) {
+      const response = await fetch(`http://localhost:8080/customer/item?cartItemId=${itemId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      toastNotification("Removed cart item " + itemId, getCurrentTime())
+
+      return true
+    } else {
+      return false
     }
-
-    return true
   } catch (error) {
     console.error("Error removing cart item:", error)
     throw error
@@ -193,6 +104,12 @@ export default function Cart() {
   const [cartItems, setCartItems] = useState<CartResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [deleteCartItem, setDeleteCartItem] = useState(false);
+  const [prodSpecsData, setProdSpecsData] = useState(prodSpecs);
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [subtotal, setSubtotal] = useState(0);
 
   // Fetch cart data on component mount
   useEffect(() => {
@@ -201,6 +118,7 @@ export default function Cart() {
       .then((response) => {
         setCartItems(response)
         setError(null)
+        setSubtotal(response.total)
       })
       .catch((err) => {
         setError("Failed to load cart items. Please try again.")
@@ -209,26 +127,64 @@ export default function Cart() {
       .finally(() => {
         setIsLoading(false)
       })
+
+    syncProductSpecifications().then(res => {
+      setProdSpecsData(res);
+    })
   }, [])
 
+  // Fetch on pagination page change
+  useEffect(() => {
+    setIsLoading(true)
+    fetchCartData(page, 10, tokenDetails().id)
+      .then((response) => {
+        setCartItems(response)
+        // setPage(response.page.number + 1)
+        setTotalPages(response.page.totalPages)
+        setError(null)
+        setSubtotal(response.total)
+      })
+      .catch((err) => {
+        setError("Failed to load cart items. Please try again.")
+        console.error(err)
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+
+    // syncProductSpecifications().then(res => {
+    //   setProdSpecsData(res);
+    // })
+  }, [page])
+
   // Update quantity function
-  const updateQuantity = async (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return
+  const updateQuantity = async (
+    cartId: number,
+    prodId: number,
+    newQuantity: number,
+    colorName: string,
+    sizeName: string,
+  ) => {
+    const colorId = prodSpecsData.colors.find(color => color.color_name === colorName)?.color_id
+    const sizeId = prodSpecsData.sizes.find(size => size.size_name === sizeName)?.size_id
+    if (newQuantity < 1 || colorId === undefined || sizeId === undefined) return
 
     try {
-      await updateCartItemQuantity(id, newQuantity)
+      addOrUpdateCartRequest(tokenDetails().id, prodId, newQuantity, colorId, sizeId, "PUT")
+        .then(_res => {
+          // Update local state to reflect the change
+          if (cartItems) {
+            const updatedContent = cartItems.content.map((item) =>
+              item.cart_items_id === cartId ? { ...item, quantity: newQuantity } : item,
+            )
 
-      // Update local state to reflect the change
-      if (cartItems) {
-        const updatedContent = cartItems.content.map((item) =>
-          item.cart_item_id === id ? { ...item, quantity: newQuantity } : item,
-        )
-
-        setCartItems({
-          ...cartItems,
-          content: updatedContent,
+            setCartItems({
+              ...cartItems,
+              content: updatedContent,
+            })
+            toastNotification("Updated Cart Item", getCurrentTime())
+          }
         })
-      }
     } catch (error) {
       console.error("Failed to update quantity:", error)
       setError("Failed to update quantity. Please try again.")
@@ -237,38 +193,31 @@ export default function Cart() {
 
   // Remove item function
   const removeItem = async (id: number) => {
-    try {
-      await removeCartItem(id)
+    setIsConfirmationOpen(true)
+    if (deleteCartItem) {
+      try {
+        await removeCartItem(id)
 
-      // Update local state to reflect the removal
-      if (cartItems) {
-        const updatedContent = cartItems.content.filter((item) => item.cart_item_id !== id)
+        // Update local state to reflect the removal
+        if (cartItems) {
+          const updatedContent = cartItems.content.filter((item) => item.cart_items_id !== id)
 
-        setCartItems({
-          ...cartItems,
-          content: updatedContent,
-          page: {
-            ...cartItems.page,
-            totalElements: cartItems.page.totalElements - 1,
-          },
-        })
+          setCartItems({
+            ...cartItems,
+            content: updatedContent,
+            page: {
+              ...cartItems.page,
+              totalElements: cartItems.page.totalElements - 1,
+            },
+          })
+        }
+      } catch (error) {
+        console.error("Failed to remove item:", error)
+        setError("Failed to remove item. Please try again.")
       }
-    } catch (error) {
-      console.error("Failed to remove item:", error)
-      setError("Failed to remove item. Please try again.")
     }
   }
 
-  // Calculate subtotal
-  const calculateSubtotal = () => {
-    if (!cartItems || !cartItems.content) return 0
-
-    return cartItems.content.reduce((total, item) => {
-      return total + item.product.price * item.quantity
-    }, 0)
-  }
-
-  const subtotal = calculateSubtotal()
   const tax = subtotal * 0.08 // Assuming 8% tax
   const total = subtotal + tax
 
@@ -305,7 +254,7 @@ export default function Cart() {
           <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
           <p className="text-muted-foreground mb-6">Looks like you haven't added anything to your cart yet.</p>
           <Button asChild>
-            <Link to="/products">Continue Shopping</Link>
+            <Link to="/shop">Continue Shopping</Link>
           </Button>
         </div>
       </div>
@@ -313,7 +262,7 @@ export default function Cart() {
   }
 
   return (
-    <div className="container mx-auto px-4 pb-16 max-w-4xl">
+    <div className="container mx-auto px-4 pb-16 max-w-6xl">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -329,7 +278,7 @@ export default function Cart() {
 
           {/* Cart Items */}
           {cartItems.content.map((item) => (
-            <Card key={item.cart_item_id} className="p-4">
+            <Card key={item.cart_items_id} className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 {/* Product Info */}
                 <div className="md:col-span-6 flex items-center space-x-4">
@@ -363,7 +312,15 @@ export default function Cart() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-none"
-                      onClick={() => updateQuantity(item.cart_item_id, item.quantity - 1)}
+                      onClick={() =>
+                        updateQuantity(
+                          item.cart_items_id,
+                          item.product.productId,
+                          item.quantity - 1,
+                          item.color,
+                          item.size,
+                        )
+                      }
                       disabled={item.quantity <= 1}
                     >
                       <Minus className="h-4 w-4" />
@@ -374,7 +331,15 @@ export default function Cart() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 rounded-none"
-                      onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}
+                      onClick={() =>
+                        updateQuantity(
+                          item.cart_items_id,
+                          item.product.productId,
+                          item.quantity + 1,
+                          item.color,
+                          item.size,
+                        )
+                      }
                     >
                       <Plus className="h-4 w-4" />
                       <span className="sr-only">Increase quantity</span>
@@ -384,7 +349,7 @@ export default function Cart() {
                     variant="ghost"
                     size="icon"
                     className="md:hidden text-destructive hover:text-destructive"
-                    onClick={() => removeItem(item.cart_item_id)}
+                    onClick={() => removeItem(item.cart_items_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Remove item</span>
@@ -399,7 +364,7 @@ export default function Cart() {
                     variant="ghost"
                     size="icon"
                     className="hidden md:inline-flex text-destructive hover:text-destructive"
-                    onClick={() => removeItem(item.cart_item_id)}
+                    onClick={() => removeItem(item.cart_items_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Remove item</span>
@@ -408,6 +373,47 @@ export default function Cart() {
               </div>
             </Card>
           ))}
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={() => setPage(Math.max(0, page - 1))}
+                />
+              </PaginationItem>
+              {Array.from({ length: totalPages }, (_, i) => i).map((index) => (
+                <PaginationItem key={index}>
+                  <PaginationLink
+                    href="#"
+                    isActive={index === page}
+                    onClick={() => setPage(index)}
+                  >
+                    {index + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+          <AlertDialog open={isConfirmationOpen} onOpenChange={setIsConfirmationOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. Are you sure you want to remove this product from the cart?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => setDeleteCartItem(true)}>Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {/* Order Summary Section */}

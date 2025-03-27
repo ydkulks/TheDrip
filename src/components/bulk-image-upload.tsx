@@ -758,7 +758,7 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                         )}
                                         <div className="absolute bottom-1 left-1 right-1">
                                           <div className="text-xs bg-background/80 text-foreground px-2 py-1 rounded truncate">
-                                            {image.filename}
+                                            {image.filename.split("?")[0]}
                                           </div>
                                         </div>
                                       </div>

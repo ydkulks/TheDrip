@@ -80,11 +80,12 @@
         - [ ] Cart
             - [x] Display items
             - [x] View product
-            - [ ] Update quantity
+            - [x] Update quantity
             - [ ] Delete item
+            - [x] Pagination
+        - [ ] Checkout
             - [ ] Apply Discount
             - [ ] Coupon Code
-        - [ ] Checkout
     - [ ] Admin features
         - [ ] Create Users with temp credentials
         - [ ] Manage Products for other users

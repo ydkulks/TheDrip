@@ -37,7 +37,7 @@ type CartProduct = {
 }
 
 type CartItem = {
-  cart_item_id: number;
+  cart_items_id: number;
   cart: Cart;
   product: CartProduct;
   quantity: number;
@@ -53,4 +53,5 @@ export type CartResponse = {
     totalElements: number;
     totalPages: number;
   };
+  total: number;
 };
