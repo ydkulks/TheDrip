@@ -10,6 +10,15 @@ export default {
   				'sans-serif'
   			]
   		},
+  		keyframes: {
+        slideOutTop: {
+          '0%': { transform: 'translateY(0)', opacity: 1 },
+          '100%': { transform: 'translateY(-100%)', opacity: 0 },
+        },
+      },
+      animation: {
+        'slide-out-top': 'slideOutTop 0.5s ease-in-out forwards', // Adjust duration as needed
+      },
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

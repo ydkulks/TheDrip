@@ -17,7 +17,7 @@ const Profile = () => {
     <>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="overflow-hidden">
+        <SidebarInset className="flex flex-col h-screen">
           <div className="flex sticky top-0 z-30 items-center p-2 w-full border-b gap-2">
             <SidebarTrigger />
             <Separator orientation="vertical" className="mr-2 h-4"/>
@@ -47,12 +47,14 @@ const Profile = () => {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="flex-1 overflow-y-auto">
           <Routes>
             <Route path="product_list" element={<ProductList />} />
             <Route path="product_details" element={<ProductDetails />} />
             <Route path="product_images" element={<ProductImages />} />
             <Route path="product_update" element={<ProductUpdate />} />
           </Routes>
+          </div>
         </SidebarInset>
       </SidebarProvider>
     </>

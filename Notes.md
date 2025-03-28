@@ -77,11 +77,11 @@
                 - [ ] View reviews
                 - [ ] Rating
                 - [ ] Submit review
-        - [ ] Cart
+        - [x] Cart
             - [x] Display items
             - [x] View product
             - [x] Update quantity
-            - [ ] Delete item
+            - [x] Delete item
             - [x] Pagination
         - [ ] Checkout
             - [ ] Apply Discount

@@ -105,7 +105,8 @@ export default function Cart() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
-  const [deleteCartItem, setDeleteCartItem] = useState(false);
+  // const [deleteCartItem, setDeleteCartItem] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null)
   const [prodSpecsData, setProdSpecsData] = useState(prodSpecs);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -191,17 +192,31 @@ export default function Cart() {
     }
   }
 
-  // Remove item function
-  const removeItem = async (id: number) => {
+  // Handle delete confirmation
+  const handleDeleteConfirmation = (id: number) => {
+    setItemToDelete(id)
     setIsConfirmationOpen(true)
-    if (deleteCartItem) {
-      try {
-        await removeCartItem(id)
+  }
 
-        // Update local state to reflect the removal
-        if (cartItems) {
-          const updatedContent = cartItems.content.filter((item) => item.cart_items_id !== id)
+  // Remove item function
+  const confirmDelete = async () => {
+    if (itemToDelete === null) return
 
+    try {
+      await removeCartItem(itemToDelete)
+
+      // Update local state to reflect the removal
+      if (cartItems) {
+        const updatedContent = cartItems.content.filter((item) => item.cart_items_id !== itemToDelete)
+
+        // Remove from all cart items too
+        // const updatedAllItems = cartItems.filter((item) => item.cart_items_id !== itemToDelete)
+        // setAllCartItems(updatedAllItems)
+
+        // If the current page becomes empty after deletion and it's not the first page, go to previous page
+        if (updatedContent.length === 0 && page > 0) {
+          setPage(page - 1)
+        } else {
           setCartItems({
             ...cartItems,
             content: updatedContent,
@@ -211,10 +226,13 @@ export default function Cart() {
             },
           })
         }
-      } catch (error) {
-        console.error("Failed to remove item:", error)
-        setError("Failed to remove item. Please try again.")
       }
+
+      // Reset the item to delete
+      setItemToDelete(null)
+    } catch (error) {
+      console.error("Failed to remove item:", error)
+      setError("Failed to remove item. Please try again.")
     }
   }
 
@@ -282,7 +300,7 @@ export default function Cart() {
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                 {/* Product Info */}
                 <div className="md:col-span-6 flex items-center space-x-4">
-                  <div className="relative rounded-md overflow-hidden border">
+                  <div className="rounded-md overflow-hidden border">
                     <img
                       src={item.product.image || "/placeholder.svg?height=100&width=100"}
                       alt={item.product.productName}
@@ -349,7 +367,7 @@ export default function Cart() {
                     variant="ghost"
                     size="icon"
                     className="md:hidden text-destructive hover:text-destructive"
-                    onClick={() => removeItem(item.cart_items_id)}
+                    onClick={() => handleDeleteConfirmation(item.cart_items_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Remove item</span>
@@ -364,7 +382,7 @@ export default function Cart() {
                     variant="ghost"
                     size="icon"
                     className="hidden md:inline-flex text-destructive hover:text-destructive"
-                    onClick={() => removeItem(item.cart_items_id)}
+                    onClick={() => handleDeleteConfirmation(item.cart_items_id)}
                   >
                     <Trash2 className="h-4 w-4" />
                     <span className="sr-only">Remove item</span>
@@ -409,16 +427,16 @@ export default function Cart() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => setDeleteCartItem(true)}>Delete</AlertDialogAction>
+                <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </div>
 
         {/* Order Summary Section */}
-        <div className="lg:col-span-1">
-          <Card className="p-6">
+        <div className="lg:col-span-1 -z-50">
+          <Card className="p-6 sticky top-28">
             <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
             <div className="space-y-2 mb-4">

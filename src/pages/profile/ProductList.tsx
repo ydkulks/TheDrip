@@ -63,6 +63,7 @@ import { useGrabScroll } from "@/components/hooks/use-grab-scroll";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useIsMobile } from "@/components/hooks/use-mobile";
+import { useSidebar } from "@/components/ui/sidebar";
 
 async function deleteProduct(id: number[]) {
   const token = localStorage.getItem("token");
@@ -120,6 +121,7 @@ export default function ProductList() {
   const [isGrabMode, setIsGrabMode] = useState(false)
   const tableContainerRef = React.useRef<HTMLDivElement>(null)
   const [prodSpecsData, setProdSpecsData] = useState<ProdSpecsType>(prodSpecs);
+  const { open } = useSidebar();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -474,8 +476,13 @@ export default function ProductList() {
   };
 
   const isMobile = useIsMobile();
+  const sidebarWidth = 256;
+  var containerMaxWidth = '100vw'
+  if (!isMobile) {
+    containerMaxWidth = open ? `calc(100vw - ${sidebarWidth}px)`:'100vw';
+  }
   return (
-    <>
+    <div style={{ maxWidth: containerMaxWidth }}>
       <div className="flex flex-wrap justify-between">
         <div className="flex">
           <Drawer open={filterOpen} onOpenChange={setFilterOpen}>
@@ -771,7 +778,7 @@ export default function ProductList() {
                 // position: "relative",
               }}
             >
-              <div style={{ minWidth: "max-content" }}>
+              <div className="min-w-max">
                 <Table>
                   <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
@@ -904,6 +911,6 @@ export default function ProductList() {
         </AlertDialogContent>
       </AlertDialog>
 
-    </>
+    </div>
   );
 }

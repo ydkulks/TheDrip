@@ -19,6 +19,7 @@ import {
   PanelsTopLeft,
   Truck,
   Menu,
+  X,
 } from "lucide-react"
 import {
   CommandDialog,
@@ -146,7 +147,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
   };
   return (
 
-    <nav className="flex justify-between py-5 px-2 text-sm xl:px-2 2xl:px-[10%]">
+    <nav className="flex justify-between py-5 px-2 text-sm xl:px-2 2xl:px-[10%] bg-white z-20">
       <div className="flex justify-start gap-5">
         <h2 className="font-integralcf font-extrabold text-xl md:text-2xl">
           <TooltipProvider>
@@ -280,29 +281,50 @@ function App() {
   const [open, setOpen] = useState(false)
   const location = useLocation();
   const isProfilePage = location.pathname.startsWith('/profile');
+  const [isBannerOpen, setIsBannerOpen] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsBannerOpen(false);
+    }, 500)
+  };
 
   return (
     <>
-      {/* NOTE: Announcement banner*/}
-      {!isProfilePage &&
-        <div className="flex bg-black text-sm text-white w-full justify-center py-2">
-          Sign up and get 20% off to your first order.
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Link to="/signup"><strong className="underline">Sign up Now</strong></Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Signup</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      }
+      <div className="sticky top-0">
+        {/* NOTE: Announcement banner*/}
+        {!isProfilePage && isBannerOpen ?
+          <div className={`flex bg-black text-sm text-white w-full justify-between py-2 ${isClosing ? 'animate-slide-out-top' : ''}`}>
+            <div className="flex justify-center w-full">
+              <span>
+                Sign up and get 20% off to your first order.
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Link to="/signup"><strong className="underline">Sign up Now</strong></Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Signup</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              className="p-0 m-0 mr-2 h-4"
+              onClick={handleClose}>
+              <X />
+            </Button>
+          </div>
+          : null}
 
-      {!isProfilePage &&
-        <Navbar open={open} setOpen={setOpen} />
-      }
+        {!isProfilePage &&
+          <Navbar open={open} setOpen={setOpen} />
+        }
+      </div>
       <CommandDialogPopup open={open} setOpen={setOpen} />
       <Routes>
         <Route path="/" element={<Home />} />
