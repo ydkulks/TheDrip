@@ -41,6 +41,7 @@ import { Sheet, SheetContent, SheetFooter, SheetTrigger } from "./components/ui/
 import { SheetNavUser } from "./components/nav-user.tsx"
 import { tokenDetails } from "./components/utils.tsx"
 import Cart from "./pages/Cart.tsx"
+import CheckoutPage from "./pages/Checkout.tsx"
 
 interface CommandPaletteState {
   open: boolean;
@@ -203,12 +204,12 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Link to="/" className="hidden md:inline">
+              <Link to="/checkout" className="hidden md:inline">
                 <Button variant="ghost" size="icon"><Truck /></Button>
               </Link>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Order</p>
+              <p>Checkout</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -257,9 +258,9 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
                   <ShoppingCart size="16" />
                   Cart
                 </Link>
-                <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/checkout" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <Truck size="16" />
-                  Order
+                  Checkout
                 </Link>
                 <Link to="/profile" className="flex text-sm gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <CircleUserRound size="16" />
@@ -293,7 +294,7 @@ function App() {
 
   return (
     <>
-      <div className="sticky top-0">
+      <div className="sticky top-0 z-20">
         {/* NOTE: Announcement banner*/}
         {!isProfilePage && isBannerOpen ?
           <div className={`flex bg-black text-sm text-white w-full justify-between py-2 ${isClosing ? 'animate-slide-out-top' : ''}`}>
@@ -334,6 +335,7 @@ function App() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/shop/view-product" element={<ViewProduct />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
       </Routes>
 
       <Toaster />

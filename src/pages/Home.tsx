@@ -11,7 +11,7 @@ import { Link } from "react-router-dom"
 
 function Hero() {
   return (
-    <header className="flex justify-between items-center bg-[#f2f0f1] px-10 lg:px-[10%]">
+    <header className="flex flex-col md:flex-row justify-between items-center bg-[#f2f0f1] px-10 lg:px-[10%]">
       <div className="lg:max-w-[50%]">
         <p className="font-extrabold text-5xl font-integralcf mt-14">FIND CLOTHES </p>
         <p className="font-extrabold text-5xl font-integralcf">THAT MATCHES </p>

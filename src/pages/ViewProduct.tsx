@@ -101,7 +101,7 @@ const ViewProduct = () => {
           <div className="grid md:grid-cols-2 gap-8">
             {/* Product Images */}
             <div className="space-y-4">
-              <div className="relative aspect-square overflow-hidden rounded-lg border">
+              <div className="relative aspect-square overflow-hidden rounded-lg border z-0">
                 <img
                   src={data.images[selectedImage] || "/placeholder.svg"}
                   alt={data.productName}
@@ -130,7 +130,7 @@ const ViewProduct = () => {
                 {data.images.map((image, index) => (
                   <button
                     key={index}
-                    className={`relative h-12 w-12 md:h-20 md:w-20 flex-shrink-0 overflow-hidden rounded-md m-2 border ${selectedImage === index ? "ring-2 ring-primary" : ""
+                    className={`relative z-0 h-12 w-12 md:h-20 md:w-20 flex-shrink-0 overflow-hidden rounded-md m-2 border ${selectedImage === index ? "ring-2 ring-primary" : ""
                       }`}
                     onClick={() => setSelectedImage(index)}
                   >

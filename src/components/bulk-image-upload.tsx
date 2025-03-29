@@ -774,7 +774,7 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                 <h4 className="text-sm font-medium mb-2">New Images</h4>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                   {product.newImages.map((image, index) => (
-                                    <div key={index} className="relative group">
+                                    <div key={index} className="relative z-0 group">
                                       <div className="aspect-square rounded-md border overflow-hidden bg-muted">
                                         <img
                                           id={product.name + product.id}

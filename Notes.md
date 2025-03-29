@@ -84,6 +84,7 @@
             - [x] Delete item
             - [x] Pagination
         - [ ] Checkout
+            - [x] Basic UI
             - [ ] Apply Discount
             - [ ] Coupon Code
     - [ ] Admin features

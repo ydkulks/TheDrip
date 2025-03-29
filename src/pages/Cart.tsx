@@ -280,7 +280,7 @@ export default function Cart() {
   }
 
   return (
-    <div className="container mx-auto px-4 pb-16 max-w-6xl">
+    <div className="container mx-auto px-4 pb-16">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -456,7 +456,7 @@ export default function Cart() {
             </div>
 
             <Button className="w-full" size="lg">
-              Proceed to Checkout
+              <Link to="/checkout">Proceed to Checkout</Link>
             </Button>
 
             <div className="mt-4">
