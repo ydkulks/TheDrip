@@ -113,7 +113,7 @@ export default function ProductList() {
   const [selectedSeries, setSelectedSeries] = useState<number[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState<number>(5);
-  const [maxPrice, setMaxPrice] = useState<number>(100);
+  const [maxPrice, setMaxPrice] = useState<number>(200);
   const [sendRequest, setSendRequest] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const IMG_COUNT = null;
@@ -241,7 +241,7 @@ export default function ProductList() {
 
   const handleReset = () => {
     setMinPrice(5);
-    setMaxPrice(100);
+    setMaxPrice(200);
     setSelectedColors([]);
     setSelectedSizes([]);
     setInStock(null);
@@ -548,7 +548,7 @@ export default function ProductList() {
                             Min: ${minPrice}
                           </Label>
                         </div>
-                        <Slider id="min-price" value={[minPrice]} max={100} step={5} onValueChange={handleMinPriceChange} />
+                        <Slider id="min-price" value={[minPrice]} max={200} step={5} onValueChange={handleMinPriceChange} />
                       </div>
 
                       <div className="space-y-2">
@@ -557,7 +557,7 @@ export default function ProductList() {
                             Max: ${maxPrice}
                           </Label>
                         </div>
-                        <Slider id="max-price" value={[maxPrice]} max={100} step={5} onValueChange={handleMaxPriceChange} />
+                        <Slider id="max-price" value={[maxPrice]} max={200} step={5} onValueChange={handleMaxPriceChange} />
                       </div>
                     </div>
                   </div>
@@ -715,7 +715,7 @@ export default function ProductList() {
       </div>
 
       {/* Display active filters */}
-      {inStock !== null || selectedColors.length > 0 || selectedSizes.length > 0 || selectedSeries.length > 0 || selectedCategories.length > 0 || minPrice != 5 || maxPrice != 100 ?
+      {inStock !== null || selectedColors.length > 0 || selectedSizes.length > 0 || selectedSeries.length > 0 || selectedCategories.length > 0 || minPrice != 5 || maxPrice != 200 ?
         <div className="flex flex-wrap">
           {inStock === null ? null :
             <Card className="flex flex-wrap mx-2 p-2 gap-2">
@@ -755,7 +755,7 @@ export default function ProductList() {
               ))}
             </Card> : null
           }
-          {minPrice != 5 || maxPrice != 100 ?
+          {minPrice != 5 || maxPrice != 200 ?
             <Card className="mx-2 p-2">
               <Label className="flex-inline self-center">Price Range: </Label>
               <Badge className="mx-2">${minPrice}</Badge>

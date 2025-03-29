@@ -38,7 +38,7 @@ const Shop = () => {
   const [selectedSeries, setSelectedSeries] = useState<number[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState<number>(5);
-  const [maxPrice, setMaxPrice] = useState<number>(100);
+  const [maxPrice, setMaxPrice] = useState<number>(200);
   const [sendRequest, setSendRequest] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const IMG_COUNT = 1
@@ -398,7 +398,7 @@ const Shop = () => {
       </div>
 
       {/* Display active filters */}
-      {inStock !== null || selectedColors.length > 0 || selectedSizes.length > 0 || selectedSeries.length > 0 || selectedCategories.length > 0 || minPrice != 5 || maxPrice != 100 ?
+      {inStock !== null || selectedColors.length > 0 || selectedSizes.length > 0 || selectedSeries.length > 0 || selectedCategories.length > 0 || minPrice != 5 || maxPrice != 200 ?
         <div className="flex flex-wrap">
           {inStock === null ? null :
             <Card className="flex flex-wrap mx-2 p-2 gap-2">
@@ -450,7 +450,7 @@ const Shop = () => {
       <div className="container mx-auto p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {sortedData.length > 0 ? sortedData.map((product) => (
-            <Card key={product.productId} className="cursor-pointer hover:bg-accent">
+            <Card key={product.productId} className="cursor-pointer hover:shadow-md transition-shadow">
               <Link to={`/shop/view-product?productId=${product.productId}`}>
                 <CardContent className="p-4">
                   <div className="aspect-square rounded-md bg-muted flex items-center justify-center mb-2">

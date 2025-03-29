@@ -73,7 +73,11 @@
                 - [ ] Categories
         - [ ] View product details
             - [x] Basic UI
+            - [x] Recommendation
+                - [x] By Category
+                - [x] By Series
             - [ ] Product reviews
+                - [x] Basic UI
                 - [ ] View reviews
                 - [ ] Rating
                 - [ ] Submit review

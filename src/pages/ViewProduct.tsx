@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { addOrUpdateCartRequest, emptyProduct, formatName, formatSize, getCurrentTime, getProduct, prodSpecs, toastNotification, tokenDetails } from "@/components/utils";
+import { addOrUpdateCartRequest, emptyProduct, formatName, formatSize, getCurrentTime, getProduct, prodSpecs, ProdSpecsType, syncProductSpecifications, toastNotification, tokenDetails } from "@/components/utils";
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { ReviewSection } from "@/components/review-section";
+import { RecommendedProducts } from "@/components/recommended-products";
 
 const ViewProduct = () => {
   const [searchParams] = useSearchParams();
@@ -20,7 +22,9 @@ const ViewProduct = () => {
   const [selectedColor, setSelectedColor] = useState(data?.colors[0])
   const [quantity, setQuantity] = useState(0)
 
-  const [prodSpecsData, _setProdSpecsData] = useState(prodSpecs);
+  const [prodSpecsData, setProdSpecsData] = useState(prodSpecs);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
+  const [seriesId, setSeriesId] = useState<number | null>(null);
 
   let productId: number | null = null;
 
@@ -34,6 +38,34 @@ const ViewProduct = () => {
       // Handle the error (e.g., redirect, display a message)
     }
   }
+
+  useEffect(() => {
+    syncProductSpecifications()
+      .then((response) => {
+        setProdSpecsData(response as ProdSpecsType);
+      });
+  }, [])
+
+  useEffect(() => {
+    if (prodSpecsData && data) {
+      const category = prodSpecsData.categories.find(
+        (cat) => cat.categoryName === data.categoryName
+      );
+
+      setCategoryId(category ? category.categoryId : null);
+    }
+    // console.log(categoryId)
+  }, [prodSpecsData, data])
+  useEffect(() => {
+    if (prodSpecsData && data) {
+      const series = prodSpecsData.series.find(
+        (ser) => ser.seriesName == data.seriesName
+      );
+
+      setSeriesId(series ? series.series_id : null);
+    }
+    // console.log(seriesId)
+  }, [prodSpecsData, data])
 
   useEffect(() => {
     const fetchData = async (pid: number) => {
@@ -254,6 +286,17 @@ const ViewProduct = () => {
               </div>
             </div>
           </div>
+          {/* Recommended Products Section */}
+          {productId && seriesId != null && categoryId != null ?
+            <RecommendedProducts
+              series={seriesId}
+              seriesName={data.seriesName}
+              category={categoryId}
+              categoryName={data.categoryName}
+            /> : null}
+
+          {/* Reviews Section */}
+          {productId && <ReviewSection productId={productId} productName={data.productName} />}
         </div>
       ) : (
         <div>No Products Found</div>
