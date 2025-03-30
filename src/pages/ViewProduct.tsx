@@ -129,7 +129,7 @@ const ViewProduct = () => {
   return (
     <>
       {data ? (
-        <div className="mx-[10%] my-8">
+        <div className="mx-5 2xl:mx-[10%] my-8">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Product Images */}
             <div className="space-y-4">

@@ -106,6 +106,10 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
               <PanelsTopLeft />
               <span>Shop</span>
             </CommandItem>
+            <CommandItem onSelect={() => handleSelect('/cart')}>
+              <PanelsTopLeft />
+              <span>Cart</span>
+            </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Settings">
