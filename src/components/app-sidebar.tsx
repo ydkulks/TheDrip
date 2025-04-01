@@ -115,7 +115,7 @@ const AppSidebar = () => {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {tokenDetails().role === "Seller" || "Admin" ?
+        {tokenDetails().role === "Seller" || tokenDetails().role === "Admin" ?
           <><SidebarGroup>
             <SidebarGroupLabel>My Product</SidebarGroupLabel>
             <SidebarGroupContent>

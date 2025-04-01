@@ -5,17 +5,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { toastNotification } from "@/components/utils"
+import { formatDate, toastNotification, token, tokenDetails } from "@/components/utils"
 import { Star } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { Input } from "./ui/input"
 
 interface Review {
-  id: number
+  userId: number
   userName: string
   userAvatar?: string
+  review_title: string
   rating: number
-  date: string
-  comment: string
+  updated: string
+  review_text: string
   helpful: number
 }
 
@@ -24,40 +26,80 @@ interface ReviewSectionProps {
   productName: string
 }
 
+
+interface ReviewResponse {
+  content: Review[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+}
+
+interface FetchReviewsParams {
+  productId: number;
+  sortBy?: string;
+  sortDirection?: string;
+  page?: number;
+  size?: number;
+}
+
+async function fetchReviews(params: FetchReviewsParams): Promise<ReviewResponse> {
+  const { productId, sortBy, sortDirection, page, size } = params;
+
+  let url = `http://localhost:8080/api/reviews/${productId}?`;
+
+  if (sortBy) {
+    url += `sortBy=${sortBy}&`;
+  }
+  if (sortDirection) {
+    url += `sortDirection=${sortDirection}&`;
+  }
+  if (page !== undefined) {
+    url += `page=${page}&`;
+  }
+  if (size !== undefined) {
+    url += `size=${size}&`;
+  }
+
+  // Remove trailing '&' or '?' if any
+  url = url.replace(/&$/, '').replace(/\?$/, '');
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data: ReviewResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    throw error; // Re-throw the error to be handled by the caller.
+  }
+}
+
 export const ReviewSection = ({ productId, productName }: ReviewSectionProps) => {
-  const [reviews, setReviews] = useState<Review[]>([
-    {
-      id: 1,
-      userName: "Sarah Johnson",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      rating: 3,
-      date: "2023-12-15",
-      comment:
-        "This is exactly what I was looking for! The quality is excellent and it fits perfectly. I've already received several compliments when wearing it.",
-      helpful: 12,
-    },
-    {
-      id: 2,
-      userName: "Michael Chen",
-      userAvatar: "/placeholder.svg?height=40&width=40",
-      rating: 2,
-      date: "2023-11-28",
-      comment:
-        "Great product overall. The material is high quality and comfortable. I took off one star because the color is slightly different from what's shown in the pictures.",
-      helpful: 8,
-    },
-    {
-      id: 3,
-      userName: "Jessica Williams",
-      rating: 5,
-      date: "2023-11-10",
-      comment:
-        "Absolutely love it! Fast shipping and the product exceeded my expectations. Will definitely buy from this seller again.",
-      helpful: 5,
-    },
-  ])
+  const [reviews, setReviews] = useState<Review[]>([])
+  useEffect(() => {
+    async function exampleUsage() {
+      try {
+        const reviews = await fetchReviews({
+          productId: productId,
+        });
+        // console.log("Fetched reviews:", reviews);
+        setReviews(reviews.content);
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
+      }
+    }
+
+    //Call example usage function
+    exampleUsage();
+  }, [productId])
 
   const [newReview, setNewReview] = useState({
+    title: "",
     rating: 0,
     comment: "",
   })
@@ -66,6 +108,10 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
 
   const handleRatingChange = (rating: number) => {
     setNewReview((prev) => ({ ...prev, rating }))
+  }
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewReview((prev) => ({ ...prev, title: e.target.value }))
   }
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -86,32 +132,41 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
     setIsSubmitting(true)
 
     try {
-      // In a real app, you would send this to your API
-      // const response = await fetch('/api/reviews', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     productId,
-      //     rating: newReview.rating,
-      //     comment: newReview.comment
-      //   })
-      // });
+      // WARN: Backend URL
+      const response = await fetch('http://localhost:8080/customer/review', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Include authorization header
+        },
+        body: JSON.stringify({
+          userId: tokenDetails().id,
+          product: productId,
+          rating: newReview.rating,
+          review_title: newReview.title,
+          review_text: newReview.comment,
+        })
+      });
+      if (!response.ok) {
+        // Handle different HTTP status codes if needed
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // assert.strictEqual(response, )
+      // const newReviewObj: Review = response as Review;
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Add the new review to the list
+      // // Add the new review to the list
       const newReviewObj: Review = {
-        id: reviews.length + 1,
-        userName: "You", // In a real app, get the user's name from auth
+        userId: tokenDetails().id,
+        userName: tokenDetails().sub, // In a real app, get the user's name from auth
+        review_title: newReview.title,
         rating: newReview.rating,
-        date: new Date().toISOString().split("T")[0],
-        comment: newReview.comment,
+        updated: new Date().toISOString().split("T")[0],
+        review_text: newReview.comment,
         helpful: 0,
       }
 
       setReviews([newReviewObj, ...reviews])
-      setNewReview({ rating: 0, comment: "" })
+      setNewReview({ title: "", rating: 0, comment: "" })
       toastNotification("Success", "Your review has been submitted")
     } catch (error) {
       console.error("Failed to submit review:", error)
@@ -122,7 +177,7 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
   }
 
   const handleHelpfulClick = (reviewId: number) => {
-    setReviews(reviews.map((review) => (review.id === reviewId ? { ...review, helpful: review.helpful + 1 } : review)))
+    setReviews(reviews.map((review) => (review.userId === reviewId ? { ...review, helpful: review.helpful + 1 } : review)))
   }
 
   // Calculate average rating
@@ -138,9 +193,8 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
               key={star}
-              className={`w-5 h-5 ${
-                star <= Math.round(averageRating) ? "fill-primary text-primary" : "fill-muted stroke-muted-foreground"
-              }`}
+              className={`w-5 h-5 ${star <= Math.round(averageRating) ? "fill-primary text-primary" : "fill-muted stroke-muted-foreground"
+                }`}
             />
           ))}
         </div>
@@ -158,9 +212,8 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
             {[1, 2, 3, 4, 5].map((star) => (
               <button key={star} type="button" onClick={() => handleRatingChange(star)} className="mr-1">
                 <Star
-                  className={`w-6 h-6 ${
-                    star <= newReview.rating ? "fill-primary text-primary" : "text-muted-foreground hover:text-primary"
-                  }`}
+                  className={`w-6 h-6 ${star <= newReview.rating ? "fill-primary text-primary" : "text-muted-foreground hover:text-primary"
+                    }`}
                 />
                 <span className="sr-only">Rate {star} stars</span>
               </button>
@@ -168,6 +221,13 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
           </div>
         </div>
         <div className="mb-4">
+          <p className="mb-2">Review Title</p>
+          <Input
+            className="mb-2"
+            value={newReview.title}
+            onChange={handleTitleChange}
+            placeholder="Review Title"
+          />
           <p className="mb-2">Your Review</p>
           <Textarea
             placeholder={`What did you think about the ${productName}?`}
@@ -189,7 +249,7 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
         {reviews.length > 0 ? (
           <div className="space-y-6">
             {reviews.map((review) => (
-              <Card key={review.id}>
+              <Card key={review.userId}>
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center">
@@ -203,21 +263,21 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                               key={star}
-                              className={`w-4 h-4 ${
-                                star <= review.rating
-                                  ? "fill-primary text-primary"
-                                  : "fill-muted stroke-muted-foreground"
-                              }`}
+                              className={`w-4 h-4 ${star <= review.rating
+                                ? "fill-primary text-primary"
+                                : "fill-muted stroke-muted-foreground"
+                                }`}
                             />
                           ))}
                         </div>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{review.date}</p>
+                    <p className="text-sm text-muted-foreground">{formatDate(review.updated)}</p>
                   </div>
-                  <p className="mt-4">{review.comment}</p>
+                  <p className="mt-4 font-bold">{review.review_title}</p>
+                  <p className="mt-4">{review.review_text}</p>
                   <div className="mt-4 flex items-center">
-                    <Button variant="ghost" size="sm" onClick={() => handleHelpfulClick(review.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => handleHelpfulClick(review.userId)}>
                       Was this helpful? ({review.helpful})
                     </Button>
                   </div>

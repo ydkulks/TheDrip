@@ -20,6 +20,20 @@ export function getCurrentTime(): string {
   }
 }
 
+export function formatDate(isoDate: string): string {
+  const date = new Date(isoDate);
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    // minute: 'numeric',
+    // second: 'numeric',
+    // timeZoneName: 'short',
+  };
+  return date.toLocaleDateString(undefined, options);
+}
+
 export function toastNotification(message: string, description: string | undefined) {
   toast(message, {
     description: description,
@@ -30,6 +44,7 @@ export function toastNotification(message: string, description: string | undefin
   })
 }
 
+export const token = localStorage.getItem("token");
 interface tokenType {
   email: string;
   exp: number;
@@ -39,7 +54,7 @@ interface tokenType {
   sub: string;
 }
 export function tokenDetails(): tokenType {
-  const token = localStorage.getItem("token");
+  // const token = localStorage.getItem("token");
   let decodedToken: tokenType;
   if (token != null) {
     decodedToken = jwtDecode(token);
