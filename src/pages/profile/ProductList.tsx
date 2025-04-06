@@ -51,7 +51,7 @@ import {
   ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -479,7 +479,7 @@ export default function ProductList() {
   const sidebarWidth = 256;
   var containerMaxWidth = '100vw'
   if (!isMobile) {
-    containerMaxWidth = open ? `calc(100vw - ${sidebarWidth}px)`:'100vw';
+    containerMaxWidth = open ? `calc(100vw - ${sidebarWidth}px)` : '100vw';
   }
   return (
     <div style={{ maxWidth: containerMaxWidth }}>
@@ -819,7 +819,10 @@ export default function ProductList() {
                           colSpan={columns.length}
                           className="h-24 text-center"
                         >
-                          No results.
+                          {/*No results.*/}
+                          <Link to="/profile/product_details">
+                            <Button variant="default">Create New Product</Button>
+                          </Link>
                         </TableCell>
                       </TableRow>
                     )}
