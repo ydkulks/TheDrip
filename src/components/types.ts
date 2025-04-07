@@ -55,3 +55,8 @@ export type CartResponse = {
   };
   total: number;
 };
+
+export type CartProducts = {
+  productId: number;
+  qty: number;
+}

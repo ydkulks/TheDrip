@@ -1,396 +1,117 @@
-import { useState } from "react"
-// import { useRouter } from "next/navigation"
-import { CheckCircle2, CreditCard, Lock, MapPin, Package, ShieldCheck, Truck, User } from "lucide-react"
+import { useEffect, useState } from "react"
+import {
+  AlertCircle,
+  CheckCircle2,
+  Lock,
+  ShieldCheck,
+  Truck,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { useNavigate } from "react-router-dom"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { OrderStatusTracker } from "@/components/order-status-tracker"
-import { OrderSummary } from "@/components/order-summary"
+import { token, tokenDetails } from "@/components/utils"
+import { CartProducts } from "@/components/types"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
+type CheckoutResponse = {
+  url: string;
+}
+
+async function createCheckoutSession(products: CartProducts[]): Promise<CheckoutResponse | null> {
+  if (products != null) {
+    const data = {
+      "successUrl": "http://localhost:5173/checkout?status=success",
+      "cancelUrl": "http://localhost:5173/checkout?status=cancel",
+      "products": products
+    }
+    // WARN: Backend URL
+    const response = await fetch(
+      'http://localhost:8080/api/stripe/create-checkout-session',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP error! Status: ${response.status}`,
+      );
+    }
+
+    return response.json();
+  }
+  return null;
+}
 
 export default function CheckoutPage() {
+  const location = useLocation()
+  const products: CartProducts[] | null = location.state as CartProducts[]
+  const [searchParams] = useSearchParams()
+  const statusParam = searchParams.get('status')
   const router = useNavigate()
-  const [step, setStep] = useState<"information" | "shipping" | "payment" | "review" | "confirmation">("information")
-  const [orderPlaced, setOrderPlaced] = useState(false)
+  const [step, setStep] = useState<"redirecting" | "success" | "cancel">("redirecting")
+  const [stripeURL, setStripeURL] = useState("/")
 
-  const handlePlaceOrder = () => {
-    setOrderPlaced(true)
-    setStep("confirmation")
-  }
+
+  useEffect(() => {
+    if (statusParam && statusParam?.toString() === "success" || statusParam?.toString() === "cancel") {
+      setStep(statusParam.toString() as "success" || "cancel")
+    }
+    if (step === "redirecting" && products != null) {
+      createCheckoutSession(products)
+        .then(response => {
+          if (response != null) {
+            setStripeURL(response.url);
+            window.location.href = response.url;
+          }
+          // console.log(response.url);
+        });
+    }
+  }, [])
 
   return (
-    <div className="container mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-8 text-center">Checkout</h1>
+    <div className="container mx-auto mb-5 px-4">
+      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
-      {!orderPlaced ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "information" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-                >
-                  <User size={16} />
-                </div>
-                <span className={`hidden md:block ${step === "information" ? "font-medium" : "text-muted-foreground"}`}>Information</span>
-              </div>
-              <div className="h-px w-8 bg-border"></div>
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "shipping" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-                >
-                  <Truck size={16} />
-                </div>
-                <span className={`hidden md:block ${step === "shipping" ? "font-medium" : "text-muted-foreground"}`}>Shipping</span>
-              </div>
-              <div className="h-px w-8 bg-border"></div>
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "payment" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-                >
-                  <CreditCard size={16} />
-                </div>
-                <span className={`hidden md:block ${step === "payment" ? "font-medium" : "text-muted-foreground"}`}>Payment</span>
-              </div>
-              <div className="h-px w-8 bg-border"></div>
-              <div className="flex items-center space-x-2">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${step === "review" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-                >
-                  <CheckCircle2 size={16} />
-                </div>
-                <span className={`hidden md:block ${step === "review" ? "font-medium" : "text-muted-foreground"}`}>Review</span>
-              </div>
-            </div>
+      {(products == null && step === "redirecting") && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>No Products Found</AlertTitle>
+          <AlertDescription>
+            You have no products to checkout. Go back to
+            <Link to="/cart"><Button variant="outline">cart</Button></Link>
+            and select product to checkout.
+          </AlertDescription>
+        </Alert>
+      )}
 
-            <Card>
-              {step === "information" && (
-                <>
-                  <CardHeader>
-                    <CardTitle>Contact Information</CardTitle>
-                    <CardDescription>Enter your contact and shipping details</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input id="firstName" placeholder="John" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input id="lastName" placeholder="Doe" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="john.doe@example.com" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input id="phone" type="tel" placeholder="+1 (555) 000-0000" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address</Label>
-                      <Input id="address" placeholder="123 Main St" />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city">City</Label>
-                        <Input id="city" placeholder="New York" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="state">State</Label>
-                        <Input id="state" placeholder="NY" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="zip">ZIP Code</Label>
-                        <Input id="zip" placeholder="10001" />
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button variant="outline" onClick={() => router("/cart")}>
-                      Return to Cart
-                    </Button>
-                    <Button onClick={() => setStep("shipping")}>Continue to Shipping</Button>
-                  </CardFooter>
-                </>
-              )}
+      {(products != null && step === "redirecting") && (
+        <Alert variant="default">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Stripe Checkout</AlertTitle>
+          <AlertDescription>
+            Redirecting you to stripe checkout...If you are not being redirected, try visiting this URL
+            <Link to={stripeURL}><Button variant="outline">Stripe Checkout</Button></Link>
+            Or, try refreshing the page.
+          </AlertDescription>
+        </Alert>
+      )}
 
-              {step === "shipping" && (
-                <>
-                  <CardHeader>
-                    <CardTitle>Shipping Method</CardTitle>
-                    <CardDescription>Select your preferred shipping method</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <RadioGroup defaultValue="standard">
-                      <div className="flex items-center space-x-2 border rounded-md p-4">
-                        <RadioGroupItem value="standard" id="standard" />
-                        <Label htmlFor="standard" className="flex-1 cursor-pointer">
-                          <div className="font-medium">Standard Shipping</div>
-                          <div className="text-sm text-muted-foreground">3-5 business days</div>
-                        </Label>
-                        <div className="font-medium">$5.99</div>
-                      </div>
-                      <div className="flex items-center space-x-2 border rounded-md p-4">
-                        <RadioGroupItem value="express" id="express" />
-                        <Label htmlFor="express" className="flex-1 cursor-pointer">
-                          <div className="font-medium">Express Shipping</div>
-                          <div className="text-sm text-muted-foreground">1-2 business days</div>
-                        </Label>
-                        <div className="font-medium">$12.99</div>
-                      </div>
-                      <div className="flex items-center space-x-2 border rounded-md p-4">
-                        <RadioGroupItem value="overnight" id="overnight" />
-                        <Label htmlFor="overnight" className="flex-1 cursor-pointer">
-                          <div className="font-medium">Overnight Shipping</div>
-                          <div className="text-sm text-muted-foreground">Next business day</div>
-                        </Label>
-                        <div className="font-medium">$19.99</div>
-                      </div>
-                    </RadioGroup>
-                    <div className="space-y-2">
-                      <Label htmlFor="notes">Delivery Instructions (Optional)</Label>
-                      <Textarea id="notes" placeholder="Special instructions for delivery" />
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button variant="outline" onClick={() => setStep("information")}>
-                      Back
-                    </Button>
-                    <Button onClick={() => setStep("payment")}>Continue to Payment</Button>
-                  </CardFooter>
-                </>
-              )}
-
-              {step === "payment" && (
-                <>
-                  <CardHeader>
-                    <CardTitle>Payment Method</CardTitle>
-                    <CardDescription>Select your preferred payment method</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <Tabs defaultValue="card">
-                      <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="card">Credit Card</TabsTrigger>
-                        <TabsTrigger value="paypal">PayPal</TabsTrigger>
-                        <TabsTrigger value="apple">Apple Pay</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="card" className="space-y-4 pt-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="cardName">Name on Card</Label>
-                          <Input id="cardName" placeholder="John Doe" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="cardNumber">Card Number</Label>
-                          <div className="relative">
-                            <Input id="cardNumber" placeholder="1234 5678 9012 3456" />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2">
-                              <img src="/placeholder.svg?height=24&width=36" alt="Visa" width={36} height={24} />
-                              <img
-                                src="/placeholder.svg?height=24&width=36"
-                                alt="Mastercard"
-                                width={36}
-                                height={24}
-                              />
-                              <img src="/placeholder.svg?height=24&width=36" alt="Amex" width={36} height={24} />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="expiry">Expiry Date</Label>
-                            <Input id="expiry" placeholder="MM/YY" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="cvv">CVV</Label>
-                            <Input id="cvv" placeholder="123" />
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2 text-sm">
-                          <Lock size={16} className="text-muted-foreground" />
-                          <span className="text-muted-foreground">
-                            Your payment information is secure and encrypted
-                          </span>
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="paypal" className="pt-4">
-                        <div className="text-center py-8">
-                          <img
-                            src="/placeholder.svg?height=60&width=120"
-                            alt="PayPal"
-                            width={120}
-                            height={60}
-                            className="mx-auto mb-4"
-                          />
-                          <p className="text-muted-foreground">
-                            You will be redirected to PayPal to complete your payment
-                          </p>
-                        </div>
-                      </TabsContent>
-                      <TabsContent value="apple" className="pt-4">
-                        <div className="text-center py-8">
-                          <img
-                            src="/placeholder.svg?height=60&width=120"
-                            alt="Apple Pay"
-                            width={120}
-                            height={60}
-                            className="mx-auto mb-4"
-                          />
-                          <p className="text-muted-foreground">Complete your purchase with Apple Pay</p>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="billingAddress">Billing Address</Label>
-                        <RadioGroup defaultValue="same">
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="same" id="same" />
-                            <Label htmlFor="same">Same as shipping address</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="different" id="different" />
-                            <Label htmlFor="different">Use a different billing address</Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="promoCode">Promotional Code</Label>
-                        <div className="flex space-x-2">
-                          <Input id="promoCode" placeholder="Enter code" className="flex-1" />
-                          <Button variant="outline">Apply</Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button variant="outline" onClick={() => setStep("shipping")}>
-                      Back
-                    </Button>
-                    <Button onClick={() => setStep("review")}>Review Order</Button>
-                  </CardFooter>
-                </>
-              )}
-
-              {step === "review" && (
-                <>
-                  <CardHeader>
-                    <CardTitle>Review Your Order</CardTitle>
-                    <CardDescription>Please review your order details before placing your order</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div>
-                      <h3 className="font-medium flex items-center mb-2">
-                        <User size={16} className="mr-2" /> Contact Information
-                      </h3>
-                      <div className="text-sm bg-muted p-3 rounded-md">
-                        <p>John Doe</p>
-                        <p>john.doe@example.com</p>
-                        <p>+1 (555) 000-0000</p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-medium flex items-center mb-2">
-                        <MapPin size={16} className="mr-2" /> Shipping Address
-                      </h3>
-                      <div className="text-sm bg-muted p-3 rounded-md">
-                        <p>123 Main St</p>
-                        <p>New York, NY 10001</p>
-                        <p>United States</p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-medium flex items-center mb-2">
-                        <Truck size={16} className="mr-2" /> Shipping Method
-                      </h3>
-                      <div className="text-sm bg-muted p-3 rounded-md">
-                        <p>Standard Shipping (3-5 business days)</p>
-                        <p>$5.99</p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="font-medium flex items-center mb-2">
-                        <CreditCard size={16} className="mr-2" /> Payment Method
-                      </h3>
-                      <div className="text-sm bg-muted p-3 rounded-md">
-                        <p>Credit Card ending in 3456</p>
-                        <p>Billing address: Same as shipping</p>
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-4">
-                      <h3 className="font-medium mb-2">Order Items</h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center">
-                          <div className="h-16 w-16 rounded-md overflow-hidden mr-4">
-                            <img
-                              src="/placeholder.svg?height=64&width=64"
-                              alt="Product"
-                              width={64}
-                              height={64}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium">Premium Cotton T-Shirt</p>
-                            <p className="text-sm text-muted-foreground">Size: M | Color: Blue</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium">$29.99</p>
-                            <p className="text-sm text-muted-foreground">Qty: 2</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          <div className="h-16 w-16 rounded-md overflow-hidden mr-4">
-                            <img
-                              src="/placeholder.svg?height=64&width=64"
-                              alt="Product"
-                              width={64}
-                              height={64}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium">Slim Fit Jeans</p>
-                            <p className="text-sm text-muted-foreground">Size: 32 | Color: Dark Blue</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium">$49.99</p>
-                            <p className="text-sm text-muted-foreground">Qty: 1</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button variant="outline" onClick={() => setStep("payment")}>
-                      Back
-                    </Button>
-                    <Button onClick={handlePlaceOrder}>Place Order</Button>
-                  </CardFooter>
-                </>
-              )}
-            </Card>
-          </div>
-
-          <div className="lg:col-span-1">
-          <OrderSummary />
-          </div>
-        </div>
-      ) : (
+      {step === "success" && (
         <div className="max-w-3xl mx-auto">
           <Card>
             <CardHeader className="text-center">
@@ -404,13 +125,13 @@ export default function CheckoutPage() {
               <div className="text-center">
                 <p className="text-lg font-medium">Order #12345678</p>
                 <p className="text-sm text-muted-foreground">
-                  A confirmation email has been sent to john.doe@example.com
+                  A confirmation email has been sent to {tokenDetails().email}
                 </p>
               </div>
 
               <OrderStatusTracker />
 
-              <div className="border rounded-lg p-4">
+              {/*<div className="border rounded-lg p-4">
                 <h3 className="font-medium mb-2">Estimated Delivery</h3>
                 <p>
                   Your order is expected to arrive between <span className="font-medium">June 15-18, 2023</span>
@@ -453,7 +174,7 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div>*/}
 
               <div className="bg-muted p-4 rounded-lg">
                 <h3 className="font-medium mb-2">Need Help?</h3>
@@ -502,6 +223,16 @@ export default function CheckoutPage() {
             </CardFooter>
           </Card>
         </div>
+      )}
+
+      {step === "cancel" && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Canceled Checkout</AlertTitle>
+          <AlertDescription>
+            Your checkout has been canceled. Please try again later.
+          </AlertDescription>
+        </Alert>
       )}
     </div>
   )

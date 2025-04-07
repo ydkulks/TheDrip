@@ -60,6 +60,8 @@
     - [ ] Customer features
         - [ ] Shop products
             - [x] Basic UI
+            - [ ] Rating
+            - [ ] Discounts
             - [ ] Sort
                 - [ ] New Arrivals
                 - [ ] Most Popular
@@ -71,16 +73,16 @@
                 - [ ] On sale
                 - [ ] New arrivals
                 - [ ] Categories
-        - [ ] View product details
+        - [x] View product details
             - [x] Basic UI
             - [x] Recommendation
                 - [x] By Category
                 - [x] By Series
-            - [ ] Product reviews
+            - [x] Product reviews
                 - [x] Basic UI
-                - [ ] View reviews
-                - [ ] Rating
-                - [ ] Submit review
+                - [x] View reviews
+                - [x] Rating
+                - [x] Submit review
         - [x] Cart
             - [x] Display items
             - [x] View product
@@ -89,8 +91,11 @@
             - [x] Pagination
         - [ ] Checkout
             - [x] Basic UI
-            - [ ] Apply Discount
-            - [ ] Coupon Code
+            - [x] Apply Discount
+            - [x] Coupon Code
+            - [x] Success UI
+                - [ ] Update DB accordingly
+            - [x] Cancel UI
     - [ ] Admin features
         - [ ] Create Users with temp credentials
         - [ ] Manage Products for other users

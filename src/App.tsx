@@ -205,7 +205,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <TooltipProvider>
+        {/*<TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
               <Link to="/checkout" className="hidden md:inline">
@@ -216,7 +216,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
               <p>Checkout</p>
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
+        </TooltipProvider>*/}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -262,10 +262,10 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
                   <ShoppingCart size="16" />
                   Cart
                 </Link>
-                <Link to="/checkout" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                {/*<Link to="/checkout" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <Truck size="16" />
                   Checkout
-                </Link>
+                </Link>*/}
                 <Link to="/profile" className="flex text-sm gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <CircleUserRound size="16" />
                   Profile
