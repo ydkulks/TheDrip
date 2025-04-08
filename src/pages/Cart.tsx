@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Link, useNavigate } from "react-router-dom"
-import type { CartProducts, CartResponse } from "@/components/types"
+import type { CartProducts, CartResponse, CheckoutPageProps } from "@/components/types"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -361,12 +361,18 @@ export default function Cart() {
       return
     }
 
-    const checkoutData: CartProducts[] = Array.from(selectedItems.values()).map((item) => ({
+    const checkoutProducts: CartProducts[] = Array.from(selectedItems.values()).map((item) => ({
       productId: item.productId,
       qty: item.quantity,
     }))
+    const checkoutProps: CheckoutPageProps = {
+      "products": checkoutProducts,
+      "cartItemIds": Array.from(selectedItems.values()).map((item) => (
+        item.cartItemId
+      )),
+    }
 
-    navigate("/checkout", { state: checkoutData })
+    navigate("/checkout", { state: checkoutProps })
   }
 
   // Loading state
@@ -395,7 +401,7 @@ export default function Cart() {
   // Empty cart state
   if (!cartItems || cartItems.content.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-4xl">
+      <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <ShoppingBag className="h-16 w-16 mb-4 text-muted-foreground" />

@@ -42,6 +42,8 @@ import { SheetNavUser } from "./components/nav-user.tsx"
 import { tokenDetails } from "./components/utils.tsx"
 import Cart from "./pages/Cart.tsx"
 import CheckoutPage from "./pages/Checkout.tsx"
+import CheckoutSuccess from "./pages/CheckoutSuccess.tsx"
+import CheckoutCancel from "./pages/CheckoutCancel.tsx"
 
 interface CommandPaletteState {
   open: boolean;
@@ -340,6 +342,8 @@ function App() {
         <Route path="/shop/view-product" element={<ViewProduct />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/checkout/success" element={<CheckoutSuccess />} />
+        <Route path="/checkout/cancel" element={<CheckoutCancel />} />
       </Routes>
 
       <Toaster />

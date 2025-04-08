@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { addOrUpdateCartRequest, emptyProduct, formatName, formatSize, getCurrentTime, getProduct, prodSpecs, ProdSpecsType, syncProductSpecifications, toastNotification, tokenDetails } from "@/components/utils";
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ReviewSection } from "@/components/review-section";
 import { RecommendedProducts } from "@/components/recommended-products";
 
@@ -25,6 +25,8 @@ const ViewProduct = () => {
   const [prodSpecsData, setProdSpecsData] = useState(prodSpecs);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [seriesId, setSeriesId] = useState<number | null>(null);
+
+  const navigate = useNavigate();
 
   let productId: number | null = null;
 
@@ -100,7 +102,7 @@ const ViewProduct = () => {
   const handleNextImage = () => {
     setSelectedImage((prev) => (prev === data.images.length - 1 ? 0 : prev + 1))
   }
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     const colorId: number | null = prodSpecsData.colors
       .find(color => selectedColor === color.color_name)?.color_id || null;
     const sizeId: number | null = prodSpecsData.sizes
@@ -114,6 +116,7 @@ const ViewProduct = () => {
             "Added to cart",
             `${quantity} ${data.productName} (${formatName(selectedColor)}, ${formatName(selectedSize)}) added to your cart.`,
           )
+          return true;
         })
     } else {
       console.log("Cart Details: ", tokenDetails().id, productId, colorId, sizeId, quantity)
@@ -121,10 +124,15 @@ const ViewProduct = () => {
         "Invalid Cart Data!",
         getCurrentTime()
       )
+      return false;
     }
   }
   const handleBuyNow = async () => {
     toastNotification("Processing payment", "Redirecting to Stripe checkout...",)
+    const response = await handleAddToCart()
+    if (response) {
+      navigate("/cart")
+    }
   }
   return (
     <>

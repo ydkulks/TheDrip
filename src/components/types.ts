@@ -60,3 +60,7 @@ export type CartProducts = {
   productId: number;
   qty: number;
 }
+export interface CheckoutPageProps {
+  products: CartProducts[];
+  cartItemIds: number[];
+}

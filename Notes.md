@@ -75,6 +75,7 @@
                 - [ ] Categories
         - [x] View product details
             - [x] Basic UI
+            - [x] Order Now
             - [x] Recommendation
                 - [x] By Category
                 - [x] By Series
@@ -89,12 +90,12 @@
             - [x] Update quantity
             - [x] Delete item
             - [x] Pagination
-        - [ ] Checkout
+        - [x] Checkout
             - [x] Basic UI
             - [x] Apply Discount
             - [x] Coupon Code
             - [x] Success UI
-                - [ ] Update DB accordingly
+                - [x] Update DB accordingly
             - [x] Cancel UI
     - [ ] Admin features
         - [ ] Create Users with temp credentials
