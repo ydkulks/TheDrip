@@ -17,7 +17,6 @@ import {
   ShoppingCart,
   CircleUserRound,
   PanelsTopLeft,
-  Truck,
   Menu,
   X,
 } from "lucide-react"
@@ -44,6 +43,8 @@ import Cart from "./pages/Cart.tsx"
 import CheckoutPage from "./pages/Checkout.tsx"
 import CheckoutSuccess from "./pages/CheckoutSuccess.tsx"
 import CheckoutCancel from "./pages/CheckoutCancel.tsx"
+import AuthCheck from "./pages/AuthCheck.tsx"
+import { Role } from "./components/types.ts"
 
 interface CommandPaletteState {
   open: boolean;
@@ -337,13 +338,33 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/profile/*" element={<Profile />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/shop/view-product" element={<ViewProduct />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/checkout/success" element={<CheckoutSuccess />} />
-        <Route path="/checkout/cancel" element={<CheckoutCancel />} />
+        <Route path="/profile/*" element={
+          <AuthCheck
+            allowedRoles={[Role.CUSTOMER, Role.SELLER, Role.ADMIN]}
+            children={<Profile />} />
+        } />
+        <Route path="/cart" element={
+          <AuthCheck
+            allowedRoles={[Role.CUSTOMER]}
+            children={<Cart />} />
+        } />
+        <Route path="/checkout" element={
+          <AuthCheck
+            allowedRoles={[Role.CUSTOMER]}
+            children={<CheckoutPage />} />
+        } />
+        <Route path="/checkout/success" element={
+          <AuthCheck
+            allowedRoles={[Role.CUSTOMER]}
+            children={<CheckoutSuccess />} />
+        } />
+        <Route path="/checkout/cancel" element={
+          <AuthCheck
+            allowedRoles={[Role.CUSTOMER]}
+            children={<CheckoutCancel />} />
+        } />
       </Routes>
 
       <Toaster />

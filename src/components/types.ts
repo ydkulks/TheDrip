@@ -64,3 +64,9 @@ export interface CheckoutPageProps {
   products: CartProducts[];
   cartItemIds: number[];
 }
+
+export enum Role {
+  CUSTOMER = "Customer",
+  ADMIN = "Admin",
+  SELLER = "Seller"
+}
