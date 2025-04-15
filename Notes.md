@@ -2,19 +2,20 @@
 **Lowkey Anime, High-Key Fashion**
 
 ## ✅ TODO
-- [ ] User
+- [x] User
     - [x] Signup page
     - [x] Login page
-    - [ ] Role based Authorization
+    - [x] Role based Authorization
 - [x] Home page
     - [x] Navbar
     - [x] Tool tip
     - [x] Hero section
 - [ ] Profile
     - [ ] Account
-        - [ ] Logout
-        - [ ] Update user info
+        - [x] Basic UI
+        - [x] Logout
         - [ ] Password reset
+        - [ ] Delete account
     - [ ] Seller features
         - [x] Create product
             - [x] UI

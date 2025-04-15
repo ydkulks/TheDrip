@@ -9,6 +9,7 @@ import { formatName } from "@/components/utils.tsx";
 import React from "react";
 import ProductUpdate from "./profile/ProductUpdate.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
+import AccountPage from "./profile/Account.tsx";
 
 const Profile = () => {
   const location = useLocation();
@@ -53,6 +54,7 @@ const Profile = () => {
             <Route path="product_details" element={<ProductDetails />} />
             <Route path="product_images" element={<ProductImages />} />
             <Route path="product_update" element={<ProductUpdate />} />
+            <Route path="account" element={<AccountPage />} />
           </Routes>
           </div>
         </SidebarInset>

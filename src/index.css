@@ -1074,6 +1074,11 @@ video {
   height: auto;
 }
 
+.h-fit {
+  height: -moz-fit-content;
+  height: fit-content;
+}
+
 .h-full {
   height: 100%;
 }
@@ -1136,6 +1141,10 @@ video {
 
 .w-2\.5 {
   width: 0.625rem;
+}
+
+.w-24 {
+  width: 6rem;
 }
 
 .w-3 {
@@ -1232,6 +1241,10 @@ video {
 
 .min-w-56 {
   min-width: 14rem;
+}
+
+.min-w-\[100\%\] {
+  min-width: 100%;
 }
 
 .min-w-\[8rem\] {
@@ -3294,6 +3307,10 @@ video {
 
   .md\:grid-cols-4 {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .md\:grid-cols-\[1fr_2fr\] {
+    grid-template-columns: 1fr 2fr;
   }
 
   .md\:flex-row {

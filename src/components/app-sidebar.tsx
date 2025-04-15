@@ -1,4 +1,4 @@
-import { Search, Shirt, Images, Trash, LayoutDashboard, LogOut, BadgeCheck } from "lucide-react"
+import { Search, Shirt, Trash, LayoutDashboard, LogOut, BadgeCheck } from "lucide-react"
 import { Link } from 'react-router-dom'
 
 import {
@@ -35,17 +35,17 @@ const product = [
 const account = [
   {
     title: "Account",
-    url: "/profile",
+    url: "/profile/account",
     icon: BadgeCheck,
   },
   {
     title: "Logout",
-    url: "/profile",
+    url: "/profile/account",
     icon: LogOut,
   },
   {
     title: "Delete Account",
-    url: "/profile",
+    url: "/profile/account#delete_account",
     icon: Trash,
   },
 ]
