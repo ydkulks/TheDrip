@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { toastNotification, tokenDetails } from "@/components/utils"
+import { toastNotification, token, tokenDetails } from "@/components/utils"
 import { Calendar, Fingerprint, IdCard, Lock, LogOut, Mail, Trash, User } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -20,6 +20,8 @@ interface userDataType {
 }
 
 export default function AccountPage() {
+  const [isPwdSubmitting, setIsPwdSubmitting] = useState(false);
+  // Get user data
   // Format dates to be more readable
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -57,8 +59,9 @@ export default function AccountPage() {
       .then(res => {
         setUserData(res)
       })
-  }, [])
+  }, [isPwdSubmitting])
 
+  // Logout
   const [openLogout, setOpenLogout] = useState(false);
   const navigate = useNavigate()
 
@@ -92,6 +95,62 @@ export default function AccountPage() {
 
     // 3. Redirect to the login page
     navigate("/login");
+  };
+
+  // Password Reset
+  const [newPassword, setNewPassword] = useState("");
+  const handlePasswordChange = (event:any) => {
+    setNewPassword(event.target.value);
+  };
+
+  const handleResetPassword = async () => {
+    setIsPwdSubmitting(true);
+
+    try {
+      const username = tokenDetails().sub;
+
+      // Basic client-side validation (can be improved)
+      if (newPassword.length < 8) {
+        toastNotification(
+          "Validation Error",
+          "Password must be at least 8 characters.",
+        );
+        setIsPwdSubmitting(false); //Re-enable the button
+        return; // Stop the submission
+      }
+
+      const response = await fetch(`http://localhost:8080/api/reset-password?username=${username}&newPassword=${newPassword}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Assuming token is stored in localStorage
+        },
+        // body: JSON.stringify({
+        //   username: username,
+        //   newPassword: newPassword,
+        // }),
+      });
+
+      if (response.ok) {
+        toastNotification(
+          "Password reset successful!",
+          "Your password has been reset.",
+        );
+        setNewPassword(""); // Clear the input after success
+      } else {
+        toastNotification(
+          "Password reset failed.",
+          "Something went wrong.",
+        );
+      }
+    } catch (error) {
+      toastNotification(
+        "An error occurred.",
+        "Failed to reset password.",
+      );
+    } finally {
+      setIsPwdSubmitting(false);
+    }
   };
 
   return (
@@ -193,8 +252,17 @@ export default function AccountPage() {
               <CardDescription>Change you're password</CardDescription>
             </CardHeader>
             <CardContent>
-              <Input type="text" placeholder="New password" className="mb-2" />
-              <Button variant="outline"><Lock />Reset password</Button>
+              <Input
+                type="text"
+                placeholder="New password"
+                className="mb-2"
+                value={newPassword}
+                onChange={handlePasswordChange}
+              />
+              <Button variant="outline" disabled={isPwdSubmitting} onClick={handleResetPassword}>
+                <Lock />
+                {isPwdSubmitting ? "Resetting..." : "Reset password"}
+              </Button>
             </CardContent>
           </Card>
 

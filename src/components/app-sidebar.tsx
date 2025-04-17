@@ -32,6 +32,19 @@ const product = [
   },
 ]
 
+const customer = [
+  {
+    title: "Cart",
+    url: "/cart",
+    icon: BadgeCheck,
+  },
+  {
+    title: "Reviews",
+    url: "/profile/reviews",
+    icon: BadgeCheck,
+  },
+]
+
 const account = [
   {
     title: "Account",
@@ -130,6 +143,26 @@ const AppSidebar = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+            <SidebarSeparator /></>
+          : null}
+        {tokenDetails().role === "Customer" ?
+          <><SidebarGroup>
+            <SidebarGroupLabel>Customer</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+              {customer.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link to={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

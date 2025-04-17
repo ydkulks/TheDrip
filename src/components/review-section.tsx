@@ -9,6 +9,7 @@ import { formatDate, toastNotification, token, tokenDetails } from "@/components
 import { Star } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Input } from "./ui/input"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "./ui/pagination"
 
 interface Review {
   userId: number
@@ -81,22 +82,26 @@ async function fetchReviews(params: FetchReviewsParams): Promise<ReviewResponse>
 
 export const ReviewSection = ({ productId, productName }: ReviewSectionProps) => {
   const [reviews, setReviews] = useState<Review[]>([])
+  const [page, setPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   useEffect(() => {
-    async function exampleUsage() {
+    async function getProductReviews() {
       try {
         const reviews = await fetchReviews({
           productId: productId,
+          page: page,
         });
         // console.log("Fetched reviews:", reviews);
         setReviews(reviews.content);
+        setPage(reviews.number);
+        setTotalPages(reviews.totalPages);
       } catch (error) {
         console.error("Failed to fetch reviews:", error);
       }
     }
 
-    //Call example usage function
-    exampleUsage();
-  }, [productId])
+    getProductReviews();
+  }, [productId, page])
 
   const [newReview, setNewReview] = useState({
     title: "",
@@ -184,6 +189,7 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
   const averageRating =
     reviews.length > 0 ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0
 
+  // TODO: Paginate reviews
   return (
     <div className="mt-12">
       <h2 className="text-2xl font-bold mb-2">Customer Reviews</h2>
@@ -284,6 +290,33 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
                 </CardContent>
               </Card>
             ))}
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={() => setPage(Math.max(0, page - 1))}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, i) => i).map((index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink
+                      href="#"
+                      isActive={index === page}
+                      onClick={() => setPage(index)}
+                    >
+                      {index + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         ) : (
           <p className="text-muted-foreground">No reviews yet. Be the first to review this product!</p>
