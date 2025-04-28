@@ -1,7 +1,7 @@
 import {
   BadgeCheck,
+  Book,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
   ShoppingCart,
 } from "lucide-react"
@@ -127,7 +127,7 @@ export function NavUser({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/profile/account")}>
                   <BadgeCheck />
                   Account
                 </DropdownMenuItem>
@@ -135,9 +135,9 @@ export function NavUser({
                   <ShoppingCart />
                   Cart
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <CreditCard />
-                  Billing
+                <DropdownMenuItem onClick={() => navigate("/profile/orders")}>
+                  <Book />
+                  Orders
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
@@ -234,7 +234,7 @@ export function SheetNavUser({
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => { }}>
+            <DropdownMenuItem onClick={() => navigate("/profile/account")}>
               <BadgeCheck className="mr-2 h-4 w-4" />
               Account
             </DropdownMenuItem>
@@ -242,9 +242,9 @@ export function SheetNavUser({
               <ShoppingCart className="mr-2 h-4 w-4" />
               Cart
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { }}>
-              <CreditCard className="mr-2 h-4 w-4" />
-              Billing
+            <DropdownMenuItem onClick={() => navigate("/profile/orders")}>
+              <Book className="mr-2 h-4 w-4" />
+              Orders
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

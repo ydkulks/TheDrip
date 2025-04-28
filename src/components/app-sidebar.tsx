@@ -1,4 +1,4 @@
-import { Search, Shirt, Trash, LayoutDashboard, LogOut, BadgeCheck } from "lucide-react"
+import { Search, Shirt, Trash, LayoutDashboard, LogOut, BadgeCheck, ShoppingCart, Star, Book } from "lucide-react"
 import { Link } from 'react-router-dom'
 
 import {
@@ -36,12 +36,17 @@ const customer = [
   {
     title: "Cart",
     url: "/cart",
-    icon: BadgeCheck,
+    icon: ShoppingCart,
   },
   {
     title: "Reviews",
     url: "/profile/reviews",
-    icon: BadgeCheck,
+    icon: Star,
+  },
+  {
+    title: "Orders",
+    url: "/profile/orders",
+    icon: Book,
   },
 ]
 

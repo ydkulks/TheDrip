@@ -11,6 +11,7 @@ import ProductUpdate from "./profile/ProductUpdate.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import AccountPage from "./profile/Account.tsx";
 import Reviews from "./profile/Reviews.tsx";
+import Orders from "./profile/Orders.tsx";
 
 const Profile = () => {
   const location = useLocation();
@@ -57,6 +58,7 @@ const Profile = () => {
             <Route path="product_update" element={<ProductUpdate />} />
             <Route path="account" element={<AccountPage />} />
             <Route path="reviews" element={<Reviews />} />
+            <Route path="orders" element={<Orders />} />
           </Routes>
           </div>
         </SidebarInset>
