@@ -98,7 +98,7 @@ export default function Reviews() {
       {reviews.length > 0 ? (
         <div className="space-y-6">
           {reviews.map((review) => (
-            <Card key={review.userId}>
+            <Card key={review.userId+review.review_title}>
               <CardContent className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center">
