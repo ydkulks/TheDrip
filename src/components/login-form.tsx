@@ -39,7 +39,7 @@ async function submitFormData(data: object, url: string) {
     });
 
     if (response.ok) {
-      console.log("Form submitted successfully");
+      // console.log("Form submitted successfully");
       return response.json();
     } else {
       toastNotification("Error submitting form", getCurrentTime())
@@ -72,11 +72,11 @@ export function LoginForm({
   } = useForm<LoginFormInputs>({ resolver: yupResolver(loginSchema) })
 
   const onSubmit: SubmitHandler<LoginFormInputs> = (data) => {
-    console.log("Form Submitted: ", data)
+    // console.log("Form Submitted: ", data)
     // WARN: Backend URL
     const url = "http://localhost:8080/api/login"
     submitFormData(data, url).then((response) => {
-      console.log(response);
+      // console.log(response);
       if (response.token) {
         localStorage.setItem("token", response.token)
         toastNotification("Logged in successfully", getCurrentTime())

@@ -2,11 +2,12 @@ import { OrderStatusTracker } from "@/components/order-status-tracker";
 import { CartProducts, CheckoutPageProps } from "@/components/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { toastNotification, token, tokenDetails } from "@/components/utils";
+import { toastNotification, useTokenDetails } from "@/components/utils";
 import { CheckCircle2, Lock, ShieldCheck, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 async function updateTransaction(products: CartProducts[], cartId: number[]) {
+  const { token } = useTokenDetails();
   if (products != null) {
     const data = {
       "successUrl": "http://localhost:5173/checkout?status=success",
@@ -42,6 +43,7 @@ async function updateTransaction(products: CartProducts[], cartId: number[]) {
 export default function CheckoutSuccess() {
   const router = useNavigate()
     const stringifiedProps = localStorage.getItem("checkout");
+    const { decodedToken } = useTokenDetails();
     if (stringifiedProps != null) {
       const parsedProps: CheckoutPageProps = JSON.parse(stringifiedProps)
       updateTransaction(parsedProps.products, parsedProps.cartItemIds)
@@ -50,7 +52,7 @@ export default function CheckoutSuccess() {
         })
     }
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto min-h-svh w-full">
       <Card>
         <CardHeader className="text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -63,7 +65,7 @@ export default function CheckoutSuccess() {
           <div className="text-center">
             <p className="text-lg font-medium">Order #12345678</p>
             <p className="text-sm text-muted-foreground">
-              A confirmation email has been sent to {tokenDetails().email}
+              A confirmation email has been sent to {decodedToken.email}
             </p>
           </div>
 

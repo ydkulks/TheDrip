@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { toastNotification, token, tokenDetails } from "@/components/utils"
+import { toastNotification, useTokenDetails } from "@/components/utils"
 import { Calendar, Fingerprint, IdCard, Lock, LogOut, Mail, Trash, User } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -35,11 +35,12 @@ export default function AccountPage() {
   }
   const [userData, setUserData] = useState<userDataType | null>(null);
   const [open, setOpen] = useState(false);
+  const { token, decodedToken } = useTokenDetails();
 
   useEffect(() => {
     const getUserData = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/${tokenDetails().id}`, {
+        const response = await fetch(`http://localhost:8080/api/${decodedToken.id}`, {
           headers: { "Content-Type": "application/json" },
         });
 
@@ -107,7 +108,7 @@ export default function AccountPage() {
     setIsPwdSubmitting(true);
 
     try {
-      const username = tokenDetails().sub;
+      const username = decodedToken.sub;
 
       // Basic client-side validation (can be improved)
       if (newPassword.length < 8) {

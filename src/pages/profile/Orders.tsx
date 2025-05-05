@@ -1,4 +1,4 @@
-import { token, tokenDetails } from "@/components/utils";
+import { useTokenDetails } from "@/components/utils";
 import { useEffect, useState } from "react";
 import { OrderTable } from "./orderTableColumns";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
@@ -24,10 +24,11 @@ interface OrdersPage {
 }
 
 export default function Orders() {
+  const { token, decodedToken } = useTokenDetails();
   const fetchCustomerOrders = async (): Promise<OrdersPage> => {
     try {
       const response = await fetch(
-        `http://localhost:8080/customer/myorders/${tokenDetails().id}`,
+        `http://localhost:8080/customer/myorders/${decodedToken.id}`,
         {
           method: "GET",
           headers: {
@@ -69,7 +70,7 @@ export default function Orders() {
 
   return (
     <div>
-      <h3 className="text-xl font-semibold mb-4 m-2">{tokenDetails().sub}'s Order Status</h3>
+      <h3 className="text-xl font-semibold mb-4 m-2">{decodedToken.sub}'s Order Status</h3>
       <OrderTable custOrders={custOrders} />
       <Pagination>
         <PaginationContent>

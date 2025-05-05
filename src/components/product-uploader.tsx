@@ -8,7 +8,7 @@ import { JsonPreview } from "./json-preview"
 import { IdMappingGuide } from "./id-mapping-guide"
 import { AlertCircle, CheckCircle2, Download, Upload } from "lucide-react"
 import * as yup from "yup"
-import { getCurrentTime, toastNotification, tokenDetails } from "./utils"
+import { getCurrentTime, toastNotification, useTokenDetails } from "./utils"
 
 interface ProductType {
   productName: string;
@@ -83,6 +83,7 @@ export function ProductUploader() {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStatus, setUploadStatus] = useState<"idle" | "success" | "error">("idle")
   const [errorMessage, setErrorMessage] = useState("")
+  const { decodedToken } = useTokenDetails();
 
   const handleFileSelected = (selectedFile: File) => {
     setFile(selectedFile)
@@ -100,7 +101,7 @@ export function ProductUploader() {
         await productArraySchema.validate(data)
 
         data ? data.map((product) => {
-          product.userId = tokenDetails().id // Add userId from token
+          product.userId = decodedToken.id // Add userId from token
         }) : null;
 
         setJsonData(data)

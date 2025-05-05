@@ -16,7 +16,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useEffect, useState } from "react";
 // UI
-import { getCurrentTime, prodSpecs, ProdSpecsType, syncProductSpecifications, toastNotification, tokenDetails } from "@/components/utils";
+import { getCurrentTime, prodSpecs, ProdSpecsType, syncProductSpecifications, toastNotification, useTokenDetails } from "@/components/utils";
 import {
   Select,
   SelectContent,
@@ -68,6 +68,7 @@ async function productFormData(data: ProductFormInputs[], url: string) {
 
 const ProductCreationForm = () => {
   const [prodSpecsData, setProdSpecsData] = useState(prodSpecs);
+  const { decodedToken } = useTokenDetails();
   interface CategoryMap {
     [key: string]: number; // Key is the formatted category name, value is the ID
   }
@@ -187,7 +188,7 @@ const ProductCreationForm = () => {
       return foundSize ? foundSize.size_id : sizeName;
     });
     // Get user id from JWT
-    dataToSubmit.userId = tokenDetails()?.id;
+    dataToSubmit.userId = decodedToken.id;
     // WARN: Backend URL
     const url = "http://localhost:8080/seller/products";
     productFormData([dataToSubmit], url)

@@ -4,7 +4,7 @@ import { AlertCircle } from "lucide-react";
 export default function CheckoutCancel() {
   localStorage.removeItem("checkout");
   return (
-    <div className="container mx-auto mb-5 px-4">
+    <div className="container min-h-svh w-full mx-auto mb-5 px-4">
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Canceled Checkout</AlertTitle>

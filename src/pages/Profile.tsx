@@ -5,19 +5,21 @@ import ProductImages from './profile/ProductImages.tsx'
 import ProductDetails from './profile/ProductDetails.tsx'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb.tsx";
 import ProductList from "./profile/ProductList.tsx";
-import { formatName } from "@/components/utils.tsx";
+import { formatName, useTokenDetails } from "@/components/utils.tsx";
 import React from "react";
 import ProductUpdate from "./profile/ProductUpdate.tsx";
 import { Separator } from "@/components/ui/separator.tsx";
 import AccountPage from "./profile/Account.tsx";
 import Reviews from "./profile/Reviews.tsx";
 import Orders from "./profile/Orders.tsx";
-import { Command, Github, LucideMousePointerClick, Space } from "lucide-react";
+import { Command, Github, LucideMousePointerClick, Mouse, Space } from "lucide-react";
 import { Badge } from "@/components/ui/badge.tsx";
+import Dashboard from "./profile/Dashboard.tsx";
 
 const Profile = () => {
   const location = useLocation();
   const pathSegments = location.pathname.split("/").filter(Boolean);
+  const { decodedToken } = useTokenDetails();
   return (
     <>
       <SidebarProvider>
@@ -63,7 +65,7 @@ const Profile = () => {
                   <div className="flex justify-between gap-5 m-2">
                     <span>Command Pallet</span>
                     <span>
-                      <Badge variant="secondary" className="text-muted-foreground py-1"><Command size="12"/></Badge>
+                      <Badge variant="secondary" className="text-muted-foreground py-1"><Command size="12" /></Badge>
                       +
                       <Badge variant="secondary" className="text-muted-foreground">P</Badge>
                     </span>
@@ -71,7 +73,7 @@ const Profile = () => {
                   <div className="flex justify-between gap-5 m-2">
                     <span>Toggle Side Bar</span>
                     <span>
-                      <Badge variant="secondary" className="text-muted-foreground py-1"><Command size="12"/></Badge>
+                      <Badge variant="secondary" className="text-muted-foreground py-1"><Command size="12" /></Badge>
                       +
                       <Badge variant="secondary" className="text-muted-foreground">B</Badge>
                     </span>
@@ -79,13 +81,25 @@ const Profile = () => {
                   <div className="flex justify-between gap-5 m-2">
                     <span>Pan Table (Horizontal)</span>
                     <span>
-                      <Badge variant="secondary" className="text-muted-foreground py-1"><Space size="12"/></Badge>
+                      <Badge variant="secondary" className="text-muted-foreground py-1"><Space size="13" /></Badge>
                       +
-                      <Badge variant="secondary" className="text-muted-foreground py-1"><LucideMousePointerClick size="12"/></Badge>
+                      <Badge variant="secondary" className="text-muted-foreground py-1 gap-1">Left <LucideMousePointerClick size="16" /></Badge>
                       +
-                      <Badge variant="secondary" className="text-muted-foreground">Drag</Badge>
+                      <Badge variant="secondary" className="text-muted-foreground gap-1">Drag <Mouse size="13" /></Badge>
                     </span>
                   </div>
+                  {decodedToken.role === "Seller" && (
+                    <div className="flex justify-between gap-5 m-2">
+                      <span>Table Context Menu</span>
+                      <span>
+                        <Badge
+                          variant="secondary"
+                          className="text-muted-foreground py-1 gap-1">
+                          Right <LucideMousePointerClick size="16" />
+                        </Badge>
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {/* Footer Text */}
                 <div className="text-sm text-muted-foreground mt-auto flex flex-col items-center gap-2">
@@ -104,6 +118,7 @@ const Profile = () => {
             )}
 
             <Routes>
+              <Route path="dashboard" element={<Dashboard />} />
               <Route path="product_list" element={<ProductList />} />
               <Route path="product_details" element={<ProductDetails />} />
               <Route path="product_images" element={<ProductImages />} />

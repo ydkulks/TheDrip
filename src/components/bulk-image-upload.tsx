@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getProductsById, toastNotification, tokenDetails } from "./utils"
+import { getProductsById, toastNotification, useTokenDetails } from "./utils"
 import type { ApiResponse } from "./types"
 import {
   Pagination,
@@ -89,11 +89,12 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string[] }>({})
+  const { decodedToken } = useTokenDetails();
 
   useEffect(() => {
     // Get username from token
     try {
-      const details = tokenDetails()
+      const details = decodedToken
       if (details && details.sub) {
         setUsername(details.sub)
       }
@@ -511,12 +512,12 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
             prev.map((p) =>
               p.id === product.id
                 ? {
-                    ...p,
-                    newImages: [],
-                    imagesToDelete: [],
-                    // Remove deleted images from existingImages
-                    existingImages: p.existingImages.filter((img) => !p.imagesToDelete.includes(img.id)),
-                  }
+                  ...p,
+                  newImages: [],
+                  imagesToDelete: [],
+                  // Remove deleted images from existingImages
+                  existingImages: p.existingImages.filter((img) => !p.imagesToDelete.includes(img.id)),
+                }
                 : p,
             ),
           )
@@ -529,11 +530,11 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
           prev.map((status) =>
             status.productId === product.id
               ? {
-                  ...status,
-                  status: "error",
-                  progress: 100,
-                  message: error instanceof Error ? error.message : "Upload failed",
-                }
+                ...status,
+                status: "error",
+                progress: 100,
+                message: error instanceof Error ? error.message : "Upload failed",
+              }
               : status,
           ),
         )
@@ -579,11 +580,10 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                     {products.map((product) => (
                       <div
                         key={product.id}
-                        className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${
-                          selectedProducts.some((p) => p.id === product.id)
+                        className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedProducts.some((p) => p.id === product.id)
                             ? "bg-primary/10 border border-primary"
                             : "border hover:bg-muted"
-                        }`}
+                          }`}
                         onClick={() => handleProductSelect(product)}
                       >
                         <div className="flex flex-col">
@@ -706,9 +706,8 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                     return (
                                       <div key={image.id + image.filename} className="relative group">
                                         <div
-                                          className={`aspect-square rounded-md border overflow-hidden ${
-                                            isMarkedForDeletion ? "opacity-40" : ""
-                                          }`}
+                                          className={`aspect-square rounded-md border overflow-hidden ${isMarkedForDeletion ? "opacity-40" : ""
+                                            }`}
                                         >
                                           <img
                                             id={image.filename + image.id}
@@ -735,11 +734,10 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                               e.stopPropagation()
                                               toggleExistingImageDelete(product.id, image.id)
                                             }}
-                                            className={`${
-                                              isMarkedForDeletion
+                                            className={`${isMarkedForDeletion
                                                 ? "bg-primary text-primary-foreground opacity-100"
                                                 : "bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100"
-                                            } rounded-full p-1 transition-opacity`}
+                                              } rounded-full p-1 transition-opacity`}
                                             disabled={isUploading}
                                           >
                                             {isMarkedForDeletion ? (

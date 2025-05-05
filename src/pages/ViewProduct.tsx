@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { addOrUpdateCartRequest, emptyProduct, formatName, formatSize, getCurrentTime, getProduct, prodSpecs, ProdSpecsType, syncProductSpecifications, toastNotification, tokenDetails } from "@/components/utils";
+import { addOrUpdateCartRequest, emptyProduct, formatName, formatSize, getCurrentTime, getProduct, prodSpecs, ProdSpecsType, syncProductSpecifications, toastNotification, useTokenDetails } from "@/components/utils";
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -25,6 +25,7 @@ const ViewProduct = () => {
   const [prodSpecsData, setProdSpecsData] = useState(prodSpecs);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [seriesId, setSeriesId] = useState<number | null>(null);
+  const { decodedToken } = useTokenDetails();
 
   const navigate = useNavigate();
 
@@ -109,7 +110,7 @@ const ViewProduct = () => {
       .find(size => selectedSize === size.size_name)?.size_id || null;
 
     if (typeof productId === "number" && colorId != null && sizeId != null) {
-      addOrUpdateCartRequest(tokenDetails().id, productId, quantity, colorId, sizeId, "POST")
+      addOrUpdateCartRequest(decodedToken.id, productId, quantity, colorId, sizeId, "POST")
         .then(_response => {
           // console.log("Response: ", _response);
           toastNotification(
@@ -119,7 +120,7 @@ const ViewProduct = () => {
           return true;
         })
     } else {
-      console.log("Cart Details: ", tokenDetails().id, productId, colorId, sizeId, quantity)
+      console.log("Cart Details: ", decodedToken.id, productId, colorId, sizeId, quantity)
       toastNotification(
         "Invalid Cart Data!",
         getCurrentTime()

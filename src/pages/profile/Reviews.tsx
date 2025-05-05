@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { formatDate, token, tokenDetails } from "@/components/utils";
+import { formatDate, useTokenDetails } from "@/components/utils";
 import { Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -30,7 +30,7 @@ interface FetchReviewsParams {
   page?: number;
   size?: number;
 }
-async function fetchReviews(params: FetchReviewsParams): Promise<ReviewResponse> {
+async function fetchReviews(params: FetchReviewsParams, token: string|null): Promise<ReviewResponse> {
   const { userId, sortBy, sortDirection, page, size } = params;
 
   // WARN: Backend URL
@@ -74,13 +74,14 @@ export default function Reviews() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const { token, decodedToken } = useTokenDetails();
   useEffect(() => {
     async function getProductReviews() {
       try {
         const reviews = await fetchReviews({
-          userId: tokenDetails().id,
+          userId: decodedToken.id,
           page: page,
-        });
+        },token);
         // console.log("Fetched reviews:", reviews);
         setReviews(reviews.content);
         setPage(reviews.number);
@@ -94,7 +95,7 @@ export default function Reviews() {
   }, [page])
   return (
     <div className="m-2">
-      <h3 className="text-xl font-semibold mb-4">{tokenDetails().sub}'s Reviews</h3>
+      <h3 className="text-xl font-semibold mb-4">{decodedToken.sub}'s Reviews</h3>
       {reviews.length > 0 ? (
         <div className="space-y-6">
           {reviews.map((review) => (

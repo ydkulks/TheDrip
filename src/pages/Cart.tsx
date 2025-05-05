@@ -8,7 +8,7 @@ import {
   prodSpecs,
   syncProductSpecifications,
   toastNotification,
-  tokenDetails,
+  useTokenDetails,
 } from "@/components/utils"
 
 import { Button } from "@/components/ui/button"
@@ -130,6 +130,7 @@ export default function Cart() {
   const [selectedItems, setSelectedItems] = useState<Map<number, SelectedItemDetails>>(new Map())
   const [selectAllCurrentPage, setSelectAllCurrentPage] = useState(false)
   const [totalItemCount, setTotalItemCount] = useState(0)
+  const { decodedToken } = useTokenDetails();
 
   const navigate = useNavigate()
 
@@ -137,7 +138,7 @@ export default function Cart() {
   const fetchCartDataPage = async (pageNum: number) => {
     setIsLoading(true)
     try {
-      const userId = tokenDetails().id
+      const userId = decodedToken.id
       const cartData = await fetchCartData(pageNum, 10, userId)
 
       setCartItems(cartData)
@@ -233,7 +234,7 @@ export default function Cart() {
     if (newQuantity < 1 || colorId === undefined || sizeId === undefined) return
 
     try {
-      addOrUpdateCartRequest(tokenDetails().id, prodId, newQuantity, colorId, sizeId, "PUT").then((_res) => {
+      addOrUpdateCartRequest(decodedToken.id, prodId, newQuantity, colorId, sizeId, "PUT").then((_res) => {
         // Update local state to reflect the change
         if (cartItems) {
           const updatedContent = cartItems.content.map((item) =>
@@ -378,7 +379,7 @@ export default function Cart() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-4xl flex justify-center items-center">
+      <div className="container min-h-svh w-full mx-auto px-4 py-16 max-w-4xl flex justify-center items-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     )
@@ -387,7 +388,7 @@ export default function Cart() {
   // Error state
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-16 max-w-4xl">
+      <div className="container min-h-svh w-full mx-auto px-4 py-16 max-w-4xl">
         <div className="bg-destructive/10 text-destructive p-4 rounded-md">
           <p>{error}</p>
           <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
@@ -401,7 +402,7 @@ export default function Cart() {
   // Empty cart state
   if (!cartItems || cartItems.content.length === 0) {
     return (
-      <div className="container mx-auto px-4">
+      <div className="container min-h-svh w-full mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <ShoppingBag className="h-16 w-16 mb-4 text-muted-foreground" />
@@ -416,7 +417,7 @@ export default function Cart() {
   }
 
   return (
-    <div className="container mx-auto px-4 pb-16">
+    <div className="container min-h-svh w-full mx-auto px-4 pb-16">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

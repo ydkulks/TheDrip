@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import React, { useEffect } from "react";
-import { toastNotification, token, tokenDetails } from "@/components/utils";
+import { toastNotification, useTokenDetails } from "@/components/utils";
 import { Role } from "@/components/types";
 
 interface AuthCheckProps {
@@ -10,6 +10,7 @@ interface AuthCheckProps {
 
 function AuthCheck({ children, allowedRoles }: AuthCheckProps) {
   const navigate = useNavigate();
+  const { token, decodedToken } = useTokenDetails();
 
   useEffect(() => {
     const isLoggedIn = () => {
@@ -21,7 +22,7 @@ function AuthCheck({ children, allowedRoles }: AuthCheckProps) {
       }
 
       // Check if the user's role is allowed
-      const userRole = tokenDetails()?.role;
+      const userRole = decodedToken.role;
 
       if (userRole) {
         if (!allowedRoles.includes(userRole as Role)) {
@@ -42,7 +43,7 @@ function AuthCheck({ children, allowedRoles }: AuthCheckProps) {
         return null;
       }
 
-      const expiryDate = tokenDetails()?.exp;
+      const expiryDate = decodedToken.exp;
 
       if (token && expiryDate && expiryDate * 1000 < Date.now()) {
         // If the token exists BUT is expired, redirect to login

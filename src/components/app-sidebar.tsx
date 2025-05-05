@@ -16,13 +16,13 @@ import {
 } from "@/components/ui/sidebar"
 import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { tokenDetails } from "./utils";
+import { useTokenDetails } from "./utils";
 import { NavUser } from "./nav-user";
 
 const product = [
   {
     title: "Dashboard",
-    url: "/profile",
+    url: "/profile/dashboard",
     icon: LayoutDashboard,
   },
   {
@@ -86,14 +86,15 @@ interface user {
   email: string
   avatar: string
 }
-const userData: user = {
-  name: tokenDetails().sub,
-  role: tokenDetails().role,
-  email: tokenDetails().email,
-  avatar: 'https://github.com/shadcn.png',
-};
 
 const AppSidebar = () => {
+const { decodedToken } = useTokenDetails();
+const userData: user = {
+  name: decodedToken.sub,
+  role: decodedToken.role,
+  email: decodedToken.email,
+  avatar: 'https://github.com/shadcn.png',
+};
   return (
     <Sidebar>
       <SidebarHeader>
@@ -133,7 +134,7 @@ const AppSidebar = () => {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {tokenDetails().role === "Seller" || tokenDetails().role === "Admin" ?
+        {decodedToken.role === "Seller" || decodedToken.role === "Admin" ?
           <><SidebarGroup>
             <SidebarGroupLabel>My Product</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -153,21 +154,21 @@ const AppSidebar = () => {
           </SidebarGroup>
             <SidebarSeparator /></>
           : null}
-        {tokenDetails().role === "Customer" ?
+        {decodedToken.role === "Customer" ?
           <><SidebarGroup>
             <SidebarGroupLabel>Customer</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-              {customer.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                {customer.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <Link to={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

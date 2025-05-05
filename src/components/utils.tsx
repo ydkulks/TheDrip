@@ -2,6 +2,7 @@ import { toast } from "sonner"
 import { X } from 'lucide-react'
 import { jwtDecode } from "jwt-decode";
 import { ApiResponse, Product } from "./types";
+import { useEffect, useState } from "react";
 
 export function getCurrentTime(): string {
   const currentTime = new Date();
@@ -44,8 +45,7 @@ export function toastNotification(message: string, description: string | undefin
   })
 }
 
-export const token = localStorage.getItem("token");
-interface tokenType {
+interface TokenType {
   email: string;
   exp: number;
   iat: number;
@@ -53,14 +53,48 @@ interface tokenType {
   role: string;
   sub: string;
 }
-export function tokenDetails(): tokenType {
-  // const token = localStorage.getItem("token");
-  let decodedToken: tokenType;
-  if (token != null) {
-    decodedToken = jwtDecode(token);
-    return decodedToken;
-  }
-  return { email: "", exp: 0, iat: 0, id: 0, role: "", sub: "" };
+// export const [token, setToken] = useState(localStorage.getItem("token"))
+// export function tokenDetails(): tokenType {
+//   let decodedToken: tokenType;
+//   if (token != null) {
+//     decodedToken = jwtDecode(token);
+//     return decodedToken;
+//   }
+//   return { email: "", exp: 0, iat: 0, id: 0, role: "", sub: "" };
+// }
+export function useTokenDetails() {
+  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [decodedToken, setDecodedToken] = useState<TokenType>(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      try {
+        return jwtDecode<TokenType>(storedToken);
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        // return null;
+      }
+    }
+    return { email: "", exp: 0, iat: 0, id: 0, role: "", sub: "" };
+  });
+
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded = jwtDecode<TokenType>(token);
+        setDecodedToken(decoded);
+        localStorage.setItem("token", token); // Ensure localStorage is updated if token changes
+      } catch (error) {
+        console.error("Error decoding token:", error);
+        setDecodedToken({ email: "", exp: 0, iat: 0, id: 0, role: "", sub: "" });
+        localStorage.removeItem("token"); // Optionally remove invalid token
+        setToken(null); // Optionally clear the token state as well
+      }
+    } else {
+      setDecodedToken({ email: "", exp: 0, iat: 0, id: 0, role: "", sub: "" });
+      localStorage.removeItem("token");
+    }
+  }, [token]);
+  return { token, decodedToken }
 }
 
 // Helper function to format names (e.g., short_sleeve_tees to Short Sleeve Tees)
@@ -127,7 +161,7 @@ export function formatSize(sizeName: string): string {
 
 // Fetch categories, series, colors and sizes data to sync
 // WARN: Backend URL
-export async function syncProductSpecifications() {
+export async function syncProductSpecifications(): Promise<ProdSpecsType> {
   try {
     const response = await fetch("http://localhost:8080/api/productspecifications", {
       headers: { "Content-Type": "application/json" },
@@ -150,7 +184,7 @@ export async function syncProductSpecifications() {
 //     jsonData = response as JsonData;
 //   });
 
-const PAGE_SIZE = 10;
+// const PAGE_SIZE = 10;
 export async function getData(
   userId: number | null,
   page: number,
@@ -162,14 +196,15 @@ export async function getData(
   series: number[],
   imgCount: number | null,
   minPrice: number,
-  maxPrice: number
+  maxPrice: number,
+  pageSize?: number
 ): Promise<ApiResponse> {
 
   if (imgCount === null) {
     imgCount = 5;
   }
 
-  let url = `http://localhost:8080/api/products?imgCount=${imgCount}&size=${PAGE_SIZE}`;
+  let url = `http://localhost:8080/api/products?imgCount=${imgCount}`;
 
   if (userId != null) {
     url += `&userId=${userId}`;
@@ -200,6 +235,9 @@ export async function getData(
   }
   if (page) {
     url += `&page=${page}`;
+  }
+  if (pageSize) {
+    url += `&size=${pageSize}`;
   }
   try {
     const response = await fetch(url);
@@ -294,7 +332,7 @@ export const emptyProduct: Product = {
 }
 
 export const updateProducts = async (products: any | UpdateProductType[]) => {
-  const token = localStorage.getItem("token");
+  const { token, decodedToken } = useTokenDetails();
   try {
     // Ensure products is always an array
     const productsArray = Array.isArray(products) ? products : [products];
@@ -309,7 +347,7 @@ export const updateProducts = async (products: any | UpdateProductType[]) => {
     const payload = productsArray.map((product) => ({
       productName: product.productName,
       categoryId: product.categoryId,
-      userId: tokenDetails().id, // Ensure correct userId (change if needed)
+      userId: decodedToken.id, // Ensure correct userId (change if needed)
       seriesId: product.seriesId,
       productPrice: product.productPrice,
       productDescription: product.productDescription,

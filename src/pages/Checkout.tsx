@@ -62,7 +62,7 @@ export default function CheckoutPage() {
   }, [props])
 
   return (
-    <div className="container mx-auto mb-5 px-4">
+    <div className="container min-h-svh w-full mx-auto mb-5 px-4">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
       {(products == null) && (

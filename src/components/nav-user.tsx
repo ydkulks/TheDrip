@@ -3,6 +3,7 @@ import {
   Book,
   ChevronsUpDown,
   LogOut,
+  Shirt,
   ShoppingCart,
 } from "lucide-react"
 
@@ -39,6 +40,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from "./ui/alert-dialog"
+import { useTokenDetails } from "./utils"
 
 export function NavUser({
   user,
@@ -85,6 +87,7 @@ export function NavUser({
     // 3. Redirect to the login page
     navigate("/login");
   };
+  const { decodedToken } = useTokenDetails();
 
   return (
     <>
@@ -131,14 +134,24 @@ export function NavUser({
                   <BadgeCheck />
                   Account
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/cart")}>
-                  <ShoppingCart />
-                  Cart
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile/orders")}>
-                  <Book />
-                  Orders
-                </DropdownMenuItem>
+                {decodedToken.role === "Customer" && (
+                  <DropdownMenuItem onClick={() => navigate("/cart")}>
+                    <ShoppingCart />
+                    Cart
+                  </DropdownMenuItem>
+                )}
+                {decodedToken.role === "Customer" && (
+                  <DropdownMenuItem onClick={() => navigate("/profile/orders")}>
+                    <Book />
+                    Orders
+                  </DropdownMenuItem>
+                )}
+                {decodedToken.role === "Seller" && (
+                  <DropdownMenuItem onClick={() => navigate("/profile/product_list")}>
+                    <Shirt />
+                    Products
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>

@@ -41,7 +41,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getCurrentTime, toastNotification, tokenDetails, syncProductSpecifications, ProdSpecsType, prodSpecs, formatName, getData, emptyProduct, updateProducts } from "@/components/utils"
+import { getCurrentTime, toastNotification, useTokenDetails, syncProductSpecifications, ProdSpecsType, prodSpecs, formatName, getData, emptyProduct, updateProducts } from "@/components/utils"
 import { Card } from "@/components/ui/card";
 import {
   ContextMenu,
@@ -122,12 +122,13 @@ export default function ProductList() {
   const tableContainerRef = React.useRef<HTMLDivElement>(null)
   const [prodSpecsData, setProdSpecsData] = useState<ProdSpecsType>(prodSpecs);
   const { open } = useSidebar();
+  const { decodedToken } = useTokenDetails();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const apiResponse = await getData(
-          tokenDetails().id,
+          decodedToken.id,
           page,
           searchTerm,
           selectedColors,

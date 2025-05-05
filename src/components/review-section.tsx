@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { formatDate, toastNotification, token, tokenDetails } from "@/components/utils"
+import { formatDate, toastNotification, useTokenDetails } from "@/components/utils"
 import { Star } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Input } from "./ui/input"
@@ -84,6 +84,8 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
   const [reviews, setReviews] = useState<Review[]>([])
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const { token, decodedToken } = useTokenDetails();
+
   useEffect(() => {
     async function getProductReviews() {
       try {
@@ -145,7 +147,7 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
           'Authorization': `Bearer ${token}`, // Include authorization header
         },
         body: JSON.stringify({
-          userId: tokenDetails().id,
+          userId: decodedToken.id,
           product: productId,
           rating: newReview.rating,
           review_title: newReview.title,
@@ -161,8 +163,8 @@ export const ReviewSection = ({ productId, productName }: ReviewSectionProps) =>
 
       // // Add the new review to the list
       const newReviewObj: Review = {
-        userId: tokenDetails().id,
-        userName: tokenDetails().sub, // In a real app, get the user's name from auth
+        userId: decodedToken.id,
+        userName: decodedToken.sub, // In a real app, get the user's name from auth
         review_title: newReview.title,
         rating: newReview.rating,
         updated: new Date().toISOString().split("T")[0],

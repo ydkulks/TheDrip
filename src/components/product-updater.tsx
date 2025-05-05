@@ -8,7 +8,7 @@ import { JsonPreview } from "./json-preview"
 import { IdMappingGuide } from "./id-mapping-guide"
 import { AlertCircle, CheckCircle2, Download, Upload } from "lucide-react"
 import * as yup from "yup"
-import { getAllProductsById, getCurrentTime, toastNotification, tokenDetails, updateProducts, UpdateProductType } from "./utils"
+import { getAllProductsById, getCurrentTime, toastNotification, useTokenDetails, updateProducts, UpdateProductType } from "./utils"
 
 const productSchema = yup.object({
   productId: yup.number().required(),
@@ -55,6 +55,7 @@ export function ProductUpdater({productId}: ProductUpdaterProps) {
   const [errorMessage, setErrorMessage] = useState("")
   // const [download, setDownload] = useState(false)
   const [productData, setProductData] = useState<UpdateProductType[] | null>(null)
+  const { decodedToken } = useTokenDetails();
 
   const handleFileSelected = (selectedFile: File) => {
     setFile(selectedFile)
@@ -72,7 +73,7 @@ export function ProductUpdater({productId}: ProductUpdaterProps) {
         await productArraySchema.validate(data)
 
         data ? data.map((product) => {
-          product.userId = tokenDetails().id // Add userId from token
+          product.userId = decodedToken.id // Add userId from token
         }) : null;
 
         setJsonData(data)

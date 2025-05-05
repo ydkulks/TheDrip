@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Sheet, SheetContent, SheetFooter, SheetTrigger } from "./components/ui/sheet.tsx"
 import { SheetNavUser } from "./components/nav-user.tsx"
-import { tokenDetails } from "./components/utils.tsx"
+import { formatName, prodSpecs, ProdSpecsType, syncProductSpecifications, useTokenDetails } from "./components/utils.tsx"
 import Cart from "./pages/Cart.tsx"
 import CheckoutPage from "./pages/Checkout.tsx"
 import CheckoutSuccess from "./pages/CheckoutSuccess.tsx"
@@ -71,6 +71,7 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
     return () => document.removeEventListener("keydown", down)
   }, [])
 
+  const { decodedToken } = useTokenDetails();
   return (
     <>
       <CommandDialog open={open} onOpenChange={setOpen}>
@@ -109,10 +110,12 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
               <PanelsTopLeft />
               <span>Shop</span>
             </CommandItem>
-            <CommandItem onSelect={() => handleSelect('/cart')}>
-              <PanelsTopLeft />
-              <span>Cart</span>
-            </CommandItem>
+            {decodedToken.role === "Customer" && (
+              <CommandItem onSelect={() => handleSelect('/cart')}>
+                <ShoppingCart />
+                <span>Cart</span>
+              </CommandItem>
+            )}
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Settings">
@@ -131,6 +134,38 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
               <span>Settings</span>
               <CommandShortcut>⌘S</CommandShortcut>
             </CommandItem>
+            {/* Customer */}
+            {decodedToken.role === "Customer" && (
+              <CommandItem onSelect={() => handleSelect('/profile/orders')}>
+                <Book />
+                <span>Orders</span>
+              </CommandItem>
+            )}
+            {decodedToken.role === "Customer" && (
+              <CommandItem onSelect={() => handleSelect('/profile/reviews')}>
+                <Star />
+                <span>Reviews</span>
+              </CommandItem>
+            )}
+            {/* Seller */}
+            {decodedToken.role === "Seller" && (
+              <CommandItem onSelect={() => handleSelect('/profile/product_details')}>
+                <Shirt />
+                <span>Create Product</span>
+              </CommandItem>
+            )}
+            {decodedToken.role === "Seller" && (
+              <CommandItem onSelect={() => handleSelect('/profile/product_list')}>
+                <Shirt />
+                <span>Products</span>
+              </CommandItem>
+            )}
+            {decodedToken.role === "Seller" && (
+              <CommandItem onSelect={() => handleSelect('/profile/dashboard')}>
+                <LayoutDashboard />
+                <span>Dashboard</span>
+              </CommandItem>
+            )}
           </CommandGroup>
         </CommandList>
       </CommandDialog>
@@ -139,6 +174,7 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
 }
 
 const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
+  const { decodedToken } = useTokenDetails();
   open;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   interface user {
@@ -148,9 +184,9 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
     avatar: string
   }
   const userData: user = {
-    name: tokenDetails().sub,
-    role: tokenDetails().role,
-    email: tokenDetails().email,
+    name: decodedToken.sub,
+    role: decodedToken.role,
+    email: decodedToken.email,
     avatar: 'https://github.com/shadcn.png',
   };
   return (
@@ -196,30 +232,20 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Link to="/cart" className="hidden md:inline">
-                <Button variant="ghost" size="icon"><ShoppingCart /></Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Shopping Cart</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        {/*<TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Link to="/checkout" className="hidden md:inline">
-                <Button variant="ghost" size="icon"><Truck /></Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Checkout</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>*/}
+        {decodedToken.role === "Customer" && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Link to="/cart" className="hidden md:inline">
+                  <Button variant="ghost" size="icon"><ShoppingCart /></Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Shopping Cart</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -261,14 +287,14 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
                   <ShoppingBag size="16" />
                   Categories
                 </Link>
-                <Link to="/cart" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
-                  <ShoppingCart size="16" />
-                  Cart
-                </Link>
-                {/*<Link to="/checkout" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
-                  <Truck size="16" />
-                  Checkout
-                </Link>*/}
+
+                {decodedToken.role === "Customer" && (
+                  <Link to="/cart" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                    <ShoppingCart size="16" />
+                    Cart
+                  </Link>
+                )}
+
                 <Link to="/profile" className="flex text-sm gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <CircleUserRound size="16" />
                   Profile
