@@ -1,4 +1,4 @@
-import { useState, useEffect, SetStateAction, Dispatch, FC } from "react"
+import { useState, useEffect, SetStateAction, Dispatch, FC, useRef } from "react"
 import Home from './pages/Home.tsx'
 import Signup from './pages/Signup.tsx'
 import Login from './app/login/page.tsx'
@@ -10,8 +10,6 @@ import { Button } from "@/components/ui/button.tsx"
 import { Toaster } from '@/components/ui/sonner.tsx'
 import {
   ShoppingBag,
-  CreditCard,
-  Settings,
   User,
   Search,
   ShoppingCart,
@@ -19,6 +17,11 @@ import {
   PanelsTopLeft,
   Menu,
   X,
+  Shirt,
+  Book,
+  Star,
+  LayoutDashboard,
+  ChevronDown,
 } from "lucide-react"
 import {
   CommandDialog,
@@ -45,6 +48,9 @@ import CheckoutSuccess from "./pages/CheckoutSuccess.tsx"
 import CheckoutCancel from "./pages/CheckoutCancel.tsx"
 import AuthCheck from "./pages/AuthCheck.tsx"
 import { Role } from "./components/types.ts"
+import { motion } from "framer-motion"
+import { useInView } from "framer-motion"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./components/ui/dropdown-menu.tsx"
 
 interface CommandPaletteState {
   open: boolean;
@@ -79,15 +85,15 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Suggestions">
-            <CommandItem onSelect={() => handleSelect('/shop')}>
+            <CommandItem onSelect={() => handleSelect('/shop?filter=trending')}>
               <ShoppingBag />
-              <span>On Sale</span>
+              <span>Trending</span>
             </CommandItem>
             <CommandItem onSelect={() => handleSelect('/shop')}>
               <ShoppingBag />
-              <span>New Arrivals</span>
+              <span>Series</span>
             </CommandItem>
-            <CommandItem onSelect={() => handleSelect('/shop')}>
+            <CommandItem onSelect={() => handleSelect('/')}>
               <ShoppingBag />
               <span>Categories</span>
             </CommandItem>
@@ -107,7 +113,7 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
               <span>Login</span>
             </CommandItem>
             <CommandItem onSelect={() => handleSelect('/shop')}>
-              <PanelsTopLeft />
+              <ShoppingBag />
               <span>Shop</span>
             </CommandItem>
             {decodedToken.role === "Customer" && (
@@ -118,21 +124,15 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
             )}
           </CommandGroup>
           <CommandSeparator />
-          <CommandGroup heading="Settings">
+          <CommandGroup heading="My Profile">
             <CommandItem onSelect={() => handleSelect('/profile')}>
               <User />
               <span>Profile</span>
               <CommandShortcut>⌘P</CommandShortcut>
             </CommandItem>
-            <CommandItem onSelect={() => handleSelect('/signup')}>
-              <CreditCard />
-              <span>Billing</span>
-              <CommandShortcut>⌘B</CommandShortcut>
-            </CommandItem>
-            <CommandItem onSelect={() => handleSelect('/signup')}>
-              <Settings />
-              <span>Settings</span>
-              <CommandShortcut>⌘S</CommandShortcut>
+            <CommandItem onSelect={() => handleSelect('/profile/account')}>
+              <User />
+              <span>Account</span>
             </CommandItem>
             {/* Customer */}
             {decodedToken.role === "Customer" && (
@@ -175,6 +175,8 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
 
 const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
   const { decodedToken } = useTokenDetails();
+  const navigate = useNavigate()
+  const [prodSpecsData, setProdSpecsData] = useState(prodSpecs)
   open;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   interface user {
@@ -189,6 +191,25 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
     email: decodedToken.email,
     avatar: 'https://github.com/shadcn.png',
   };
+  const seriesLinks = [
+    { name: "Cyberpunk: Edgerunner", value: 1 },
+    { name: "Dragon Ball Super: Super Hero", value: 2 },
+    { name: "Chainsaw Man", value: 3 },
+  ]
+
+  useEffect(() => {
+    syncProductSpecifications()
+      .then((response) => {
+        setProdSpecsData(response as ProdSpecsType);
+      });
+  }, [])
+  const [categoryLinks, setCategoryLinks] = useState<string[]>([])
+  useEffect(() => {
+    setCategoryLinks([])
+    prodSpecsData.categories.map(items => (
+      setCategoryLinks(prevLinks => [...prevLinks, items.categoryName])
+    ))
+  }, [prodSpecsData.categories])
   return (
 
     <nav className="flex justify-between py-5 px-2 text-sm xl:px-2 2xl:px-[10%] bg-white z-20">
@@ -207,11 +228,41 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
             </Tooltip>
           </TooltipProvider>
         </h2>
-        <div className="hidden md:flex justify-start gap-3 pt-1">
-          <Link to="/shop" className="hover:underline">Shop</Link>
-          <Link to="/shop" className="hover:underline">On Sale</Link>
-          <Link to="/shop" className="hover:underline">New Arrivals</Link>
-          <Link to="/shop" className="hover:underline">Categories</Link>
+        <div className="hidden md:flex justify-start pt-1">
+          <Button variant="link" onClick={() => navigate("/shop")}>
+            Shop
+          </Button>
+          <Button variant="link" onClick={() => navigate("/")}>
+            Trending
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost">
+                Series <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {seriesLinks.map(link => (
+                <DropdownMenuItem key={link.value + link.name} onClick={() => navigate(`/shop?series=${link.value}`)}>
+                  {link.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost">
+                Categories <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {categoryLinks.map(link => (
+                <DropdownMenuItem key={link} onClick={() => navigate(`/shop?category=${link}`)}>
+                  {formatName(link)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div className="flex justify-end gap-1">
@@ -277,11 +328,11 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
                 </Link>
                 <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <ShoppingBag size="16" />
-                  On Sale
+                  Trending
                 </Link>
                 <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <ShoppingBag size="16" />
-                  New Arrivals
+                  Series
                 </Link>
                 <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <ShoppingBag size="16" />
@@ -308,6 +359,28 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
         </Sheet>
       </div>
     </nav>
+  )
+}
+function Footer() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, amount: 0.1 })
+  return (
+    <div>
+      <footer className="w-full bg-black text-white py-12">
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className="mb-12"
+        >
+          <h2 className="text-3xl md:text-4xl font-bold font-integralcf mb-4 ml-5">TheDrip.</h2>
+          <p className="text-muted-foreground max-w-2xl mb-12 ml-5">
+            Low-key Anime, High-key Fashion
+          </p>
+        </motion.div>
+      </footer>
+    </div>
   )
 }
 
@@ -394,6 +467,9 @@ function App() {
       </Routes>
 
       <Toaster />
+      {!isProfilePage &&
+        <Footer />
+      }
 
     </>
   )

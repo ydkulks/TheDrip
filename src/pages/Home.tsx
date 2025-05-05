@@ -8,6 +8,13 @@ import Ckwai from '/images/ckwai_logo.png'
 import Nonsense from '/images/null_w_text.png'
 import Supersick from '/images/Super.png'
 import { Link } from "react-router-dom"
+import { motion } from "framer-motion"
+import { useInView } from "framer-motion"
+import { FeaturedSeries } from "@/components/featured-series"
+import { CategoryShowcase } from "@/components/category-showcase"
+import { useRef } from "react"
+import { Newsletter } from "@/components/news-letter"
+import TrendingNow from "@/components/trending-now"
 
 function Hero() {
   return (
@@ -44,11 +51,11 @@ function Hero() {
   )
 }
 
-
 const Home = () => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, amount: 0.1 })
   return (
     <div>
-      {/* TODO: Reactive layout */}
       <Hero />
 
       {/* TODO: Seamless infinite scrolling */}
@@ -62,6 +69,37 @@ const Home = () => {
           <img src={Ckwai} alt="ckawai" />
         </div>
       </marquee>
+
+      <FeaturedSeries />
+      <CategoryShowcase />
+
+      {/* Trending Now */}
+      <section className="py-16 px-4 md:px-6 lg:px-8">
+        <div className="container mx-auto">
+          <motion.div
+            ref={ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.5 }}
+            className="mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold font-integralcf mb-4 ml-5">Trending Now</h2>
+            <p className="text-muted-foreground max-w-2xl mb-12 ml-5">
+              Our most popular items this season
+            </p>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.5 }}
+            className="mb-12"
+          >
+            <TrendingNow />
+          </motion.div>
+        </div>
+      </section>
+
+      <Newsletter />
     </div>
   )
 }

@@ -10,17 +10,18 @@ import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { formatName, getData, prodSpecs, ProdSpecsType, syncProductSpecifications } from "@/components/utils";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
 import { Label } from "@radix-ui/react-label";
 import { ChevronDown, Filter, Search, SortAsc, Star } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion"
+import { useInView } from "framer-motion"
 
 const sortBtns = [
-  { name: "New Arrivals", value: "product_created" },
-  { name: "Most Popular", value: "product_sold" },
   { name: "Name", value: "product_name" },
   { name: "Stock", value: "product_stock" },
   { name: "Price: High to Low", value: "product_price_dec" },
@@ -42,8 +43,21 @@ const Shop = () => {
   const [sendRequest, setSendRequest] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const IMG_COUNT = 1
-  const [selectedSort, setSelectedSort] = useState<string | undefined>(undefined)
+  const [selectedSort, setSelectedSort] = useState<string | undefined>("product_name")
   const [prodSpecsData, setProdSpecsData] = useState<ProdSpecsType>(prodSpecs);
+  const [loading, setLoading] = useState(true)
+  const placeholder = [
+    { productId: 1 }, { productId: 2 }, { productId: 3 }, { productId: 4 }, { productId: 5 },
+    { productId: 6 }, { productId: 7 }, { productId: 8 }, { productId: 9 }, { productId: 10 },
+  ]
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, amount: 0.1 })
+  const [searchParams] = useSearchParams();
+  const categoryFilterParam = searchParams.get('category');
+  let [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const seriesFilterParam = searchParams.get('series');
+  let [seriesFilter, setSeriesFilter] = useState<number | null>(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -64,6 +78,8 @@ const Shop = () => {
         setTotalPages(apiResponse.page.totalPages);
       } catch (error) {
         console.error("Failed to fetch total pages:", error);
+      } finally {
+        setLoading(false)
       }
     };
 
@@ -86,6 +102,44 @@ const Shop = () => {
         setProdSpecsData(response as ProdSpecsType);
       });
   }, [])
+
+  useEffect(() => {
+    if (categoryFilterParam) {
+      // check if filterParam has values of categories in prodSpecsData
+      prodSpecsData.categories.forEach(element => {
+        // console.log(element.categoryName)
+        if (element.categoryName === categoryFilterParam) {
+          setCategoryFilter(categoryFilterParam);
+        }
+      });
+    }
+    // Get id from name
+    if (categoryFilter !== null) {
+      const categoryFilterId = prodSpecsData.categories
+        .filter((category) => category.categoryName === categoryFilter)
+        .map((category) => category.categoryId);
+      // console.log(categoryFilter, categoryFilterId)
+      setSelectedSeries([])
+      setSelectedCategories(categoryFilterId)
+    }
+    handleSearch()
+  }, [categoryFilter, searchParams]);
+
+  useEffect(() => {
+    if (seriesFilterParam) {
+      const parsedSeriesId = parseInt(seriesFilterParam, 10);
+
+      if (!isNaN(parsedSeriesId)) {
+        setSeriesFilter(parsedSeriesId);
+        setSelectedCategories([])
+        setSelectedSeries([parsedSeriesId])
+      } else {
+        console.error("Invalid productId in URL:", seriesFilterParam);
+        // Handle the error (e.g., redirect, display a message)
+      }
+    }
+    handleSearch()
+  }, [seriesFilter, searchParams]);
 
   const handleColorToggle = (colorId: number) => {
     setSelectedColors((prevSelected) => {
@@ -130,7 +184,7 @@ const Shop = () => {
   // Handling sort
   const handleSortChange = (value: string) => {
     setSelectedSort(value);
-    console.log("Selected value:", value);
+    // console.log("Selected value:", value);
   };
   const sortedData = useMemo(() => {
     if (!selectedSort) {
@@ -145,10 +199,6 @@ const Shop = () => {
           return a.productName.localeCompare(b.productName);
         case "product_stock":
           return a.productStock - b.productStock;
-        case "product_sold":
-          return 0; //add real comparison, assuming product_sold is a field on Product type
-        case "product_created":
-          return 0; //add real comparison, assuming product_created is a field on Product type
         case "product_price_asc":
           return a.productPrice - b.productPrice;
         case "product_price_dec":
@@ -194,7 +244,7 @@ const Shop = () => {
 
   const handleReset = () => {
     setMinPrice(5);
-    setMaxPrice(100);
+    setMaxPrice(200);
     setSelectedColors([]);
     setSelectedSizes([]);
     setInStock(null);
@@ -208,7 +258,7 @@ const Shop = () => {
   const isMobile = useIsMobile();
 
   return (
-    <>
+    <div className="min-h-svh">
       <div className="flex justify-between flex-wrap xl:mx-2 2xl:mx-[10%]">
         <div className="flex flex-wrap-reverse">
           <Drawer open={filterOpen} onOpenChange={setFilterOpen}>
@@ -438,7 +488,7 @@ const Shop = () => {
               ))}
             </Card> : null
           }
-          {minPrice != 5 || maxPrice != 100 ?
+          {minPrice != 5 || maxPrice != 200 ?
             <Card className="mx-2 p-2">
               <Label className="flex-inline self-center">Price Range: </Label>
               <Badge className="mx-2">${minPrice}</Badge>
@@ -448,52 +498,85 @@ const Shop = () => {
         : null}
 
       <div className="container mx-auto p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {sortedData.length > 0 ? sortedData.map((product) => (
-            <Card key={product.productId} className="cursor-pointer hover:shadow-md transition-shadow">
-              <Link to={`/shop/view-product?productId=${product.productId}`}>
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {loading && (placeholder.map((product) => (
+              <Skeleton key={product.productId}>
                 <CardContent className="p-4">
                   <div className="aspect-square rounded-md bg-muted flex items-center justify-center mb-2">
-                    <img
-                      className="rounded-md"
-                      src={product.images[0] || "https://placehold.co/300x300?text=No+Image"}
-                      alt={product.productName}
-                    />
+                    <Skeleton className="w-[300px] h-[300px] rounded-md" />
                   </div>
                   <div className="flex justify-between">
-                    <h3 className="font-medium my-2">{product.productName}</h3>
-                    <Badge variant="outline" className="inline-flex text-sm gap-1 my-2">
-                      4.5<Star size="15" />
-                    </Badge>
+                    <Skeleton className="w-[150px] h-5" />
+                    <Skeleton className="w-10 h-5" />
                   </div>
                   <div className="flex justify-between">
-                    <p className="text-sm text-muted-foreground">{product.seriesName}</p>
-                    <Badge variant="outline" className="text-sm">{formatName(product.categoryName)}</Badge>
+                    <Skeleton className="w-[150px] h-5" />
+                    <Skeleton className="w-10 h-5" />
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between p-4 pt-0">
                   <div>
-                    <span className="font-medium">${product.productPrice}</span>
-                    <span className="font-normal text-sm line-through text-muted-foreground ml-2">
-                      ${product.productPrice}
-                    </span>
+                    <Skeleton className="w-10 h-7 mb-1" />
+                    <Skeleton className="w-10 h-5" />
                   </div>
                   <div>
-                    <span className={`text-xs ${product.productStock > 0 ? "text-green-600" : "text-red-600"}`}>
-                      {product.productStock > 0 ? "In Stock" : "Out of Stock"}
-                    </span>
+                    <Skeleton className="w-10 h-5" />
                   </div>
                 </CardFooter>
-              </Link>
-            </Card>
-          )) : null}
-        </div>
+              </Skeleton>
+            )))}
+            {sortedData.length > 0 ? sortedData.map((product) => (
+              <Card key={product.productId} className="cursor-pointer hover:shadow-md transition-shadow">
+                <Link to={`/shop/view-product?productId=${product.productId}`}>
+                  <CardContent className="p-4">
+                    <div className="aspect-square rounded-md bg-muted flex items-center justify-center mb-2">
+                      <img
+                        className="rounded-md"
+                        src={product.images[0] || "https://placehold.co/300x300?text=No+Image"}
+                        alt={product.productName}
+                      />
+                    </div>
+                    <div className="flex justify-between">
+                      <h3 className="font-medium my-2">{product.productName}</h3>
+                      <Badge variant="outline" className="inline-flex text-sm gap-1 my-2">
+                        4.5<Star size="15" />
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <p className="text-sm text-muted-foreground">{product.seriesName}</p>
+                      <Badge variant="outline" className="text-sm">{formatName(product.categoryName)}</Badge>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex justify-between p-4 pt-0">
+                    <div>
+                      <span className="font-medium">${product.productPrice}</span>
+                      <span className="font-normal text-sm line-through text-muted-foreground ml-2">
+                        ${product.productPrice}
+                      </span>
+                    </div>
+                    <div>
+                      <span className={`text-xs ${product.productStock > 0 ? "text-green-600" : "text-red-600"}`}>
+                        {product.productStock > 0 ? "In Stock" : "Out of Stock"}
+                      </span>
+                    </div>
+                  </CardFooter>
+                </Link>
+              </Card>
+            )) : null}
+          </div>
+        </motion.div>
         {sortedData.length <= 0 ?
           <>
-          <h3 className="font-integralcf text-center">No product found</h3>
-        </> : null}
+            <h3 className="font-integralcf text-center">No product found</h3>
+          </> : null}
       </div>
-      <Pagination>
+      <Pagination className="my-12">
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
@@ -520,7 +603,7 @@ const Shop = () => {
           </PaginationItem>
         </PaginationContent>
       </Pagination>
-    </>
+    </div>
   )
 }
 export default Shop;
