@@ -14,7 +14,7 @@
     - [ ] Account
         - [x] Basic UI
         - [x] Logout
-        - [ ] Password reset
+        - [x] Password reset
         - [ ] Delete account
     - [ ] Seller features
         - [x] Create product
@@ -65,7 +65,7 @@
             - [ ] Discounts
             - [ ] Sort
                 - [ ] New Arrivals
-                - [ ] Most Popular
+                - [x] Most Popular
                 - [x] Name
                 - [x] Stock
                 - [x] Price
@@ -73,7 +73,7 @@
             - [ ] Sections
                 - [ ] On sale
                 - [ ] New arrivals
-                - [ ] Categories
+                - [x] Categories
         - [x] View product details
             - [x] Basic UI
             - [x] Order Now

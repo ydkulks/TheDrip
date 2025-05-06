@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
-import { formatName, getData, prodSpecs, ProdSpecsType, syncProductSpecifications } from "@/components/utils";
+import { formatName, getData, getTrendingData, prodSpecs, ProdSpecsType, syncProductSpecifications } from "@/components/utils";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
 import { Label } from "@radix-ui/react-label";
 import { ChevronDown, Filter, Search, SortAsc, Star } from "lucide-react";
@@ -53,6 +53,8 @@ const Shop = () => {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.1 })
   const [searchParams] = useSearchParams();
+  const filterParam = searchParams.get('filter');
+  const [filter, setFilter] = useState<string | null>(null);
   const categoryFilterParam = searchParams.get('category');
   let [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const seriesFilterParam = searchParams.get('series');
@@ -83,7 +85,24 @@ const Shop = () => {
       }
     };
 
-    fetchData();
+    const fetchTrendingData = async () => {
+      try {
+        const apiResponse = await getTrendingData(10);
+        setData(apiResponse.content);
+        setTotalPages(apiResponse.page.totalPages);
+        setSelectedSort(undefined);
+      } catch (error) {
+        console.error("Failed to fetch total pages:", error);
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (filter === "trending") {
+      fetchTrendingData();
+    } else {
+      fetchData();
+    }
   }, [page, sendRequest]);
 
   // Searching and Filtering
@@ -104,6 +123,15 @@ const Shop = () => {
   }, [])
 
   useEffect(() => {
+    if (filterParam === "trending") {
+      setSelectedSeries([])
+      setSelectedCategories([])
+      setFilter(filterParam)
+      handleSearch()
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (categoryFilterParam) {
       // check if filterParam has values of categories in prodSpecsData
       prodSpecsData.categories.forEach(element => {
@@ -120,6 +148,7 @@ const Shop = () => {
         .map((category) => category.categoryId);
       // console.log(categoryFilter, categoryFilterId)
       setSelectedSeries([])
+      setFilter(null)
       setSelectedCategories(categoryFilterId)
     }
     handleSearch()
@@ -132,6 +161,7 @@ const Shop = () => {
       if (!isNaN(parsedSeriesId)) {
         setSeriesFilter(parsedSeriesId);
         setSelectedCategories([])
+        setFilter(null)
         setSelectedSeries([parsedSeriesId])
       } else {
         console.error("Invalid productId in URL:", seriesFilterParam);
@@ -448,8 +478,14 @@ const Shop = () => {
       </div>
 
       {/* Display active filters */}
-      {inStock !== null || selectedColors.length > 0 || selectedSizes.length > 0 || selectedSeries.length > 0 || selectedCategories.length > 0 || minPrice != 5 || maxPrice != 200 ?
-        <div className="flex flex-wrap">
+      {inStock !== null || selectedColors.length > 0 || selectedSizes.length > 0 || selectedSeries.length > 0 || selectedCategories.length > 0 || minPrice != 5 || maxPrice != 200 || filter ?
+        <div className="flex flex-wrap xl:mx-2 2xl:mx-[10%]">
+          {filter === null ? null :
+            <Card className="flex flex-wrap mx-2 p-2 gap-2">
+              <Label className="flex-inline self-center">Selected Filter: </Label>
+              <Badge>{formatName(filter)}</Badge>
+            </Card>
+          }
           {inStock === null ? null :
             <Card className="flex flex-wrap mx-2 p-2 gap-2">
               <Label className="flex-inline self-center">Selected State: </Label>

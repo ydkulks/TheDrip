@@ -232,7 +232,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
           <Button variant="link" onClick={() => navigate("/shop")}>
             Shop
           </Button>
-          <Button variant="link" onClick={() => navigate("/")}>
+          <Button variant="link" onClick={() => navigate("/shop?filter=trending")}>
             Trending
           </Button>
           <DropdownMenu>
@@ -326,7 +326,7 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
                   <ShoppingBag size="16" />
                   Shop
                 </Link>
-                <Link to="/" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/shop?filter=trending" className="flex gap-2 my-2 hover:underline" onClick={() => setMobileMenuOpen(false)}>
                   <ShoppingBag size="16" />
                   Trending
                 </Link>
@@ -375,9 +375,15 @@ function Footer() {
           className="mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold font-integralcf mb-4 ml-5">TheDrip.</h2>
-          <p className="text-muted-foreground max-w-2xl mb-12 ml-5">
-            Low-key Anime, High-key Fashion
-          </p>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+            transition={{ duration: 0.4, delay: 2 * 0.1 }}
+          >
+            <p className="text-muted-foreground max-w-2xl mb-12 ml-5">
+              Low-key Anime, High-key Fashion
+            </p>
+          </motion.div>
         </motion.div>
       </footer>
     </div>

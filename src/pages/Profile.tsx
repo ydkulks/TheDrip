@@ -120,9 +120,9 @@ const Profile = () => {
             <Routes>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="product_list" element={<ProductList />} />
-              <Route path="product_details" element={<ProductDetails />} />
-              <Route path="product_images" element={<ProductImages />} />
-              <Route path="product_update" element={<ProductUpdate />} />
+              <Route path="product_list/product_details" element={<ProductDetails />} />
+              <Route path="product_list/product_images" element={<ProductImages />} />
+              <Route path="product_list/product_update" element={<ProductUpdate />} />
               <Route path="account" element={<AccountPage />} />
               <Route path="reviews" element={<Reviews />} />
               <Route path="orders" element={<Orders />} />

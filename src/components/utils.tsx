@@ -416,3 +416,20 @@ export async function addOrUpdateCartRequest(
     throw error; // Re-throw the error to be handled by the calling component
   }
 }
+
+export async function getTrendingData(size: number) {
+  const url = new URL('http://localhost:8080/api/products/trending');
+  size ? url.searchParams.append('size', size.toString()) : null;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data: ApiResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch products:", error);
+    toastNotification("Error Fetching Trending Data", getCurrentTime())
+    return { content: [], page: { size: 0, number: 0, totalElements: 0, totalPages: 0 } };
+  }
+}

@@ -2,15 +2,17 @@ import { Product } from "@/components/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { formatName, getData } from "@/components/utils"
-import { Star } from "lucide-react";
+import { formatName, getTrendingData } from "@/components/utils"
+import { ArrowRight, Star } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Skeleton } from "./ui/skeleton";
+import { Button } from "./ui/button";
 
 export default function TrendingNow() {
   const [trendingProducts, setNewArrivalProducts] = useState<Product[]>()
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   const placeholder = [
     { productId: 1 },
@@ -23,11 +25,7 @@ export default function TrendingNow() {
   useEffect(() => {
     const fetchTrendingData = async () => {
       try {
-        const apiResponse = await getData(
-          null, 0, "", [], [],
-          null, [], [], 1,
-          5, 200, 5
-        );
+        const apiResponse = await getTrendingData(5);
         setNewArrivalProducts(apiResponse.content);
         // console.log(apiResponse)
       } catch (error) {
@@ -41,7 +39,7 @@ export default function TrendingNow() {
   }, []);
 
   if (loading || trendingProducts === undefined || !trendingProducts.length) {
-    // return <div className="mt-8">Loading products...</div>
+    // NOTE: Loading UI
     return (
       <div className="mx-5">
         <Carousel
@@ -86,6 +84,10 @@ export default function TrendingNow() {
             <CarouselNext />
           </div>
         </Carousel>
+        <Button variant="outline" size="lg" className="group" onClick={() => { navigate('/shop?filter=trending') }}>
+          More
+          <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Button>
       </div>
     )
   }
@@ -146,6 +148,10 @@ export default function TrendingNow() {
           <CarouselNext />
         </div>
       </Carousel>
+      <Button variant="outline" size="lg" className="group" onClick={() => { navigate('/shop?filter=trending') }}>
+        More
+        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+      </Button>
     </div>
   )
 }

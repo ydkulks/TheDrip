@@ -420,7 +420,7 @@ export default function ProductList() {
   // Context Menu
   const navigate = useNavigate();
   const handleNewProduct = () => {
-    navigate('/profile/product_details', { replace: true });
+    navigate('/profile/product_list/product_details', { replace: true });
   };
 
   const handleCopyProductId = () => {
@@ -440,7 +440,7 @@ export default function ProductList() {
   const handleUpdateProduct = () => {
     const rows = table.getSelectedRowModel().flatRows.map((row) => row.original.productId)
     if (rows.length >= 1) {
-      navigate(`/profile/product_update?productId=${rows}`, { replace: true });
+      navigate(`/profile/product_list/product_update?productId=${rows}`, { replace: true });
     }
     // if (rows.length <= 1) {
     //   toastNotification("You can Inline update for single product", getCurrentTime());
@@ -450,7 +450,7 @@ export default function ProductList() {
   const handleUploadImages = () => {
     const rows = table.getSelectedRowModel().flatRows.map((row) => row.original.productId)
     if (rows.length >= 1) {
-      navigate(`/profile/product_images?productId=${rows}`, { replace: true });
+      navigate(`/profile/product_list/product_images?productId=${rows}`, { replace: true });
     }
     // if (rows.length > 1) {
     //   toastNotification("Cannot upload for more then one product at a time", getCurrentTime());
@@ -821,7 +821,7 @@ export default function ProductList() {
                           className="h-24 text-center"
                         >
                           {/*No results.*/}
-                          <Link to="/profile/product_details">
+                          <Link to="/profile/product_list/product_details">
                             <Button variant="default">Create New Product</Button>
                           </Link>
                         </TableCell>

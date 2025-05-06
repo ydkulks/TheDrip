@@ -22,12 +22,18 @@ export function Newsletter() {
           Subscribe to our newsletter for exclusive offers, early access to new collections, and style inspiration
           delivered to your inbox.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-          <Input type="email" placeholder="Enter your email" className="h-12" />
-          <Button className="h-12 px-6">
-            Subscribe <Send className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.4, delay: 2 * 0.1 }}
+        >
+          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+            <Input type="email" placeholder="Enter your email" className="h-12" />
+            <Button className="h-12 px-6">
+              Subscribe <Send className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </motion.div>
       </motion.div>
     </section>
   )
