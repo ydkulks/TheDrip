@@ -22,6 +22,10 @@ import {
   Star,
   LayoutDashboard,
   ChevronDown,
+  Instagram,
+  Twitter,
+  Youtube,
+  ArrowRight,
 } from "lucide-react"
 import {
   CommandDialog,
@@ -51,6 +55,7 @@ import { Role } from "./components/types.ts"
 import { motion } from "framer-motion"
 import { useInView } from "framer-motion"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./components/ui/dropdown-menu.tsx"
+import { Input } from "./components/ui/input.tsx"
 
 interface CommandPaletteState {
   open: boolean;
@@ -364,29 +369,200 @@ const Navbar: FC<CommandPaletteState> = ({ open, setOpen }) => {
 function Footer() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.1 })
+  const [prodSpecsData, setProdSpecsData] = useState(prodSpecs)
+
+  const [footerLinks, setFotterLinks]  = useState([
+    {
+      title: "Shop",
+      links: [
+        { name: "Shop Now", href: "/shop" },
+        { name: "Trending", href: "/shop?filter=trending" },
+        { name: "New Arrival", href: "/shop?filter=new_arrival" },
+      ],
+    },
+    {
+      title: "Series",
+      links: [
+        { name: "Cyberpunk: Edgerunner", href: "/shop?series=1" },
+        { name: "Dragon Ball Super: Super Hero", href: "/shop?series=2" },
+        { name: "Chainsaw Man", href: "/shop?series=3" },
+      ],
+    },
+    {
+      title: "Categories",
+      links: [
+        { name: "T-Shirts", href: "#" },
+      ],
+    },
+    {
+      title: "Account",
+      links: [
+        { name: "Profile", href: "/profile" },
+        { name: "Sign Up", href: "/signup" },
+        { name: "Login", href: "/login" },
+      ],
+    },
+  ])
+
+  useEffect(() => {
+    syncProductSpecifications()
+      .then((response) => {
+        setProdSpecsData(response as ProdSpecsType);
+      });
+  }, [])
+  // const [categoryLinks, setCategoryLinks] = useState<string[]>([])
+  useEffect(() => {
+    // setCategoryLinks([])
+    // prodSpecsData.categories.map(items => (
+    //   setCategoryLinks(prevLinks => [...prevLinks, items.categoryName])
+    // ))
+
+    if (prodSpecsData?.categories) {
+    const newCategoryLinks = prodSpecsData.categories.map(category => ({
+      name: formatName(category.categoryName),
+      href: `/shop?category=${encodeURIComponent(category.categoryName.toLowerCase().replace(/\s+/g, '-'))}`,
+    }));
+    // setFotterLinks(footerLinks)// Change categories link
+    setFotterLinks(prevFooterLinks =>
+        prevFooterLinks.map(group =>
+          group.title === "Categories" ? { ...group, links: newCategoryLinks } : group
+        )
+      );
+    }
+  }, [prodSpecsData.categories])
+
   return (
-    <div>
-      <footer className="w-full bg-black text-white py-12">
+    <footer className="w-full bg-black text-white py-16 relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full bg-white/5 blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Logo and tagline section with enhanced styling */}
         <motion.div
           ref={ref}
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.5 }}
-          className="mb-12"
+          className="mb-16 border-b border-white/10 pb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold font-integralcf mb-4 ml-5">TheDrip.</h2>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-            transition={{ duration: 0.4, delay: 2 * 0.1 }}
-          >
-            <p className="text-muted-foreground max-w-2xl mb-12 ml-5">
-              Low-key Anime, High-key Fashion
-            </p>
-          </motion.div>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="relative inline-block">
+                <h2 className="text-4xl md:text-5xl font-integralcf">
+                  TheDrip<span className="text-white">.</span>
+                </h2>
+              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+              >
+                <p className="text-white/60 max-w-md mt-3 text-lg italic">Low-key Anime, High-key Fashion</p>
+              </motion.div>
+            </div>
+
+            {/* Newsletter signup with enhanced styling */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="mt-8 md:mt-0 max-w-md"
+            >
+              <h3 className="text-sm uppercase tracking-widest font-semibold mb-3">Join our Community</h3>
+              <div className="relative">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/40 pr-12 h-12 focus:ring-1 focus:ring-white/30 focus:border-white/30"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-white hover:text-black transition-colors duration-300"
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-sm text-white/60 mt-2">Get exclusive drops and 10% off your first order</p>
+            </motion.div>
+          </div>
         </motion.div>
-      </footer>
-    </div>
+
+        {/* Links section with enhanced styling */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
+          {footerLinks.map((section, i) => (
+            <motion.div
+              key={section.title}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+              transition={{ duration: 0.4, delay: (i + 3) * 0.1 }}
+            >
+              <h3 className="text-sm uppercase tracking-widest font-semibold mb-6 after:content-[''] after:block after:w-8 after:h-px after:bg-white/30 after:mt-2">
+                {section.title}
+              </h3>
+              <ul className="space-y-3">
+                {section.links.map((link) => (
+                  <li key={link.name}>
+                    <Link
+                      to={link.href}
+                      className="text-white/60 hover:text-white transition-colors duration-300 flex items-center group text-sm"
+                    >
+                      <span className="relative overflow-hidden">
+                        <span className="block transition-transform duration-300 group-hover:translate-y-full">
+                          {link.name}
+                        </span>
+                        <span className="absolute top-0 left-0 -translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                          {link.name}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Social and copyright with enhanced styling */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.4, delay: 0.8 }}
+          className="pt-8 border-t border-white/10"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex space-x-8 mb-6 md:mb-0">
+              <a href="#" className="text-white/40 hover:text-white transition-all duration-300 hover:scale-110">
+                <Instagram className="h-5 w-5" />
+                <span className="sr-only">Instagram</span>
+              </a>
+              <a href="#" className="text-white/40 hover:text-white transition-all duration-300 hover:scale-110">
+                <Twitter className="h-5 w-5" />
+                <span className="sr-only">Twitter</span>
+              </a>
+              <a href="#" className="text-white/40 hover:text-white transition-all duration-300 hover:scale-110">
+                <Youtube className="h-5 w-5" />
+                <span className="sr-only">YouTube</span>
+              </a>
+            </div>
+
+            <div className="text-white/60 text-sm">
+              <p>© {new Date().getFullYear()} TheDrip. All rights reserved.</p>
+              <div className="flex space-x-6 mt-2 justify-center md:justify-end">
+                <a href="#" className="hover:text-white transition-colors">
+                  Privacy Policy
+                </a>
+                <a href="#" className="hover:text-white transition-colors">
+                  Terms of Service
+                </a>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </footer>
   )
 }
 
@@ -412,7 +588,7 @@ function App() {
           <div className={`flex bg-black text-sm text-white w-full justify-between py-2 ${isClosing ? 'animate-slide-out-top' : ''}`}>
             <div className="flex justify-center w-full">
               <span>
-                Sign up and get 20% off to your first order.
+                Sign up and get 10% off to your first order.
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
