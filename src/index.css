@@ -658,20 +658,12 @@ video {
   right: -0.5rem;
 }
 
-.-right-3 {
-  right: -0.75rem;
-}
-
 .-top-12 {
   top: -3rem;
 }
 
 .-top-2 {
   top: -0.5rem;
-}
-
-.-top-3 {
-  top: -0.75rem;
 }
 
 .bottom-0 {
@@ -2369,10 +2361,6 @@ video {
   letter-spacing: -0.025em;
 }
 
-.tracking-tighter {
-  letter-spacing: -0.05em;
-}
-
 .tracking-widest {
   letter-spacing: 0.1em;
 }
@@ -2481,10 +2469,6 @@ video {
 
 .text-white\/60 {
   color: rgb(255 255 255 / 0.6);
-}
-
-.text-white\/70 {
-  color: rgb(255 255 255 / 0.7);
 }
 
 .underline {
@@ -2772,12 +2756,12 @@ video {
   color: hsl(var(--muted-foreground));
 }
 
-.placeholder\:text-white\/30::-moz-placeholder {
-  color: rgb(255 255 255 / 0.3);
+.placeholder\:text-white\/40::-moz-placeholder {
+  color: rgb(255 255 255 / 0.4);
 }
 
-.placeholder\:text-white\/30::placeholder {
-  color: rgb(255 255 255 / 0.3);
+.placeholder\:text-white\/40::placeholder {
+  color: rgb(255 255 255 / 0.4);
 }
 
 .after\:absolute::after {

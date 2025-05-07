@@ -21,6 +21,7 @@ interface userDataType {
 
 export default function AccountPage() {
   const [isPwdSubmitting, setIsPwdSubmitting] = useState(false);
+  const [isAccDeleting, setIsAccDeleting] = useState(false);
   // Get user data
   // Format dates to be more readable
   const formatDate = (dateString: string) => {
@@ -100,7 +101,7 @@ export default function AccountPage() {
 
   // Password Reset
   const [newPassword, setNewPassword] = useState("");
-  const handlePasswordChange = (event:any) => {
+  const handlePasswordChange = (event: any) => {
     setNewPassword(event.target.value);
   };
 
@@ -152,6 +153,82 @@ export default function AccountPage() {
     } finally {
       setIsPwdSubmitting(false);
     }
+  };
+
+  const [currentPwd, setCurrentPwd] = useState<string>("")
+  const handleCurrentPwdChange = (event: any) => {
+    setCurrentPwd(event.target.value);
+  };
+
+  const handleAccountDeletion = () => {
+    setOpen(true)
+    // Basic validation
+    if (currentPwd.length < 8) {
+      toastNotification(
+        "Validation Error",
+        "Password must be at least 8 characters.",
+      );
+      setOpen(false); //Re-enable the button
+      return; // Stop the submission
+    }
+  }
+
+  const confirmAccDeletion = async () => {
+    setOpen(false); // Close pop-up
+
+    // Delete account
+    setIsAccDeleting(true)
+    try {
+      // WARN: Backend URL
+      const url = `http://localhost:8080/api/${decodedToken.id}/delete`;
+      const options = {
+        method: 'DELETE',
+        headers: {
+          authorization: `Bearer ${token}`,
+          'content-type': 'application/json',
+        },
+        body: `{"password": "${currentPwd}"}`
+      };
+
+      const response = await fetch(url, options);
+
+      if (!response.ok) {
+        console.error("Logout failed on the server:", response.status);
+        // Handle server-side logout failure (e.g., display an error message)
+      }
+      setCurrentPwd(""); // Clear the input after success
+      toastNotification(
+        "Account deleted successfully",
+        "Your account and all the data associated with is has been deleted",
+      )
+    } catch (e) {
+      toastNotification(
+        "An error occurred",
+        "Failed to delete account",
+      )
+    } finally {
+      setIsAccDeleting(false)
+    }
+    // try {
+    //   const response = await fetch("/api/logout", {
+    //     method: "POST", // Or DELETE, depending on your API
+    //     headers: {
+    //       "Content-Type": "application/json"
+    //       // Include any necessary authorization headers if required
+    //     }
+    //   });
+
+    //   if (!response.ok) {
+    //     console.error("Logout failed on the server:", response.status);
+    //     // Handle server-side logout failure (e.g., display an error message)
+    //   }
+    // } catch (error) {
+    //   console.error("Error during logout:", error);
+    //   // Handle network errors or other issues
+    // }
+
+    // Redirect to the signup page
+    navigate("/signup");
   };
 
   return (
@@ -254,7 +331,7 @@ export default function AccountPage() {
             </CardHeader>
             <CardContent>
               <Input
-                type="text"
+                type="password"
                 placeholder="New password"
                 className="mb-2"
                 value={newPassword}
@@ -275,7 +352,18 @@ export default function AccountPage() {
               <CardDescription>Permanently delete you're account</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="destructive"><Trash />Delete account</Button>
+              {/*<Button variant="destructive"><Trash />Delete account</Button>*/}
+              <Input
+                type="password"
+                placeholder="Password"
+                className="mb-2"
+                value={currentPwd}
+                onChange={handleCurrentPwdChange}
+              />
+              <Button variant="destructive" disabled={isAccDeleting} onClick={handleAccountDeletion}>
+                <Trash />
+                {isAccDeleting ? "Deleting..." : "Delete Account"}
+              </Button>
             </CardContent>
           </Card>
           <AlertDialog open={open} onOpenChange={setOpen}>
@@ -283,13 +371,13 @@ export default function AccountPage() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action will log you out of the application.
+                  This action will delete your account and all the data associated with it.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 {/* TODO: Handle account deletioin */}
-                <AlertDialogAction onClick={() => { }}>Log Out</AlertDialogAction>
+                <AlertDialogAction onClick={confirmAccDeletion}>Delete</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
