@@ -154,7 +154,7 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
             )}
             {/* Seller */}
             {decodedToken.role === "Seller" && (
-              <CommandItem onSelect={() => handleSelect('/profile/product_details')}>
+              <CommandItem onSelect={() => handleSelect('/profile/product_list/product_details')}>
                 <Shirt />
                 <span>Create Product</span>
               </CommandItem>

@@ -7,6 +7,7 @@ export type Product = {
   seriesName: string;
   categoryName: string;
   sellerName: string;
+  sellerId: number;
   images: string[];
   sizes: string[];
   colors: string[];

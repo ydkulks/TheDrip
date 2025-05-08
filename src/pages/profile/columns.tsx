@@ -150,7 +150,7 @@ export const columns: ColumnDef<Product>[] = [
       return editingId === row.original.productId ? (
         <Input
           type="number"
-          value={editedValues.productPrice || ""}
+          value={editedValues.productPrice ?? ""}
           onChange={(e) => handleChange("productPrice", Number(e.target.value))}
         />
       ) : (
@@ -176,7 +176,7 @@ export const columns: ColumnDef<Product>[] = [
       return editingId === row.original.productId ? (
         <Input
           type="number"
-          value={editedValues.productStock || ""}
+          value={editedValues.productStock ?? ""}
           onChange={(e) => handleChange("productStock", Number(e.target.value))}
         />
       ) : (

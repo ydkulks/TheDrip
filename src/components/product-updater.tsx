@@ -26,7 +26,8 @@ const productSchema = yup.object({
 const productArraySchema = yup.array().of(productSchema)
 
 async function uploadProducts(products: UpdateProductType[] | null) {
-  const response = await updateProducts(products);
+  const {token, decodedToken} = useTokenDetails();
+  const response = await updateProducts(products, token, decodedToken);
 
   if (!response.ok) {
     // Handle HTTP errors (e.g., 404, 500)

@@ -326,34 +326,35 @@ export const emptyProduct: Product = {
   seriesName: "Series Name",
   categoryName: "Category Name",
   sellerName: "Seller Name",
+  sellerId: 0,
   images: ["https://placehold.co/100x100"],
   sizes: ["small", "medium", "large", "extra_large", "double_extra_large"],
   colors: ["original"],
 }
 
-export const updateProducts = async (products: any | UpdateProductType[]) => {
-  const { token, decodedToken } = useTokenDetails();
+export const updateProducts = async (products: UpdateProductType[] | null, token: string | null, decodedToken: TokenType) => {
+  // const { token, decodedToken } = useTokenDetails();
   try {
     // Ensure products is always an array
     const productsArray = Array.isArray(products) ? products : [products];
 
     // Extract all product IDs for query param
-    const productIds = productsArray.map((product) => product.productId).join(",");
+    const productIds = productsArray.map((product) => product?.productId).join(",");
     if (!productIds) throw new Error("At least one product ID is required");
 
     const url = `http://localhost:8080/seller/products?productIds=${productIds}`;
 
     // Construct payload
     const payload = productsArray.map((product) => ({
-      productName: product.productName,
-      categoryId: product.categoryId,
-      userId: decodedToken.id, // Ensure correct userId (change if needed)
-      seriesId: product.seriesId,
-      productPrice: product.productPrice,
-      productDescription: product.productDescription,
-      productStock: product.productStock,
-      productSizes: product.productSizes, // Should be an array of size IDs
-      productColors: product.productColors, // Should be an array of color IDs
+      productName: product?.productName,
+      categoryId: product?.categoryId,
+      userId: decodedToken.role === "Admin" ? product?.userId : decodedToken.id, // Ensure correct userId (change if needed)
+      seriesId: product?.seriesId,
+      productPrice: product?.productPrice,
+      productDescription: product?.productDescription,
+      productStock: product?.productStock,
+      productSizes: product?.sizes, // Should be an array of size IDs
+      productColors: product?.colors, // Should be an array of color IDs
     }));
 
     const response = await fetch(url, {

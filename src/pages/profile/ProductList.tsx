@@ -41,7 +41,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getCurrentTime, toastNotification, useTokenDetails, syncProductSpecifications, ProdSpecsType, prodSpecs, formatName, getData, emptyProduct, updateProducts } from "@/components/utils"
+import { getCurrentTime, toastNotification, useTokenDetails, syncProductSpecifications, ProdSpecsType, prodSpecs, formatName, getData, emptyProduct, updateProducts, UpdateProductType } from "@/components/utils"
 import { Card } from "@/components/ui/card";
 import {
   ContextMenu,
@@ -64,37 +64,6 @@ import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, Dr
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useIsMobile } from "@/components/hooks/use-mobile";
 import { useSidebar } from "@/components/ui/sidebar";
-
-async function deleteProduct(id: number[]) {
-  const token = localStorage.getItem("token");
-  let url = `http://localhost:8080/seller/product?productId=${id}`;
-  try {
-    const response = await fetch(url, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      // Handle HTTP errors (e.g., 404, 500)
-      console.error(`HTTP error! status: ${response.status}`);
-      toastNotification("HTTP error! status", getCurrentTime());
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    // Process the successful response (e.g., parse JSON)
-    const data = await response.json();
-    console.log("Product deleted successfully:", data);
-    return data; // Or return a success status, etc.
-
-  } catch (error) {
-    // Handle network errors or exceptions
-    console.error("There was an error deleting the product:", error);
-    toastNotification("There was an error deleting the product", getCurrentTime());
-    throw error; // Re-throw the error to be handled by the caller
-  }
-}
 
 export default function ProductList() {
   const [page, setPage] = useState(0);
@@ -122,13 +91,43 @@ export default function ProductList() {
   const tableContainerRef = React.useRef<HTMLDivElement>(null)
   const [prodSpecsData, setProdSpecsData] = useState<ProdSpecsType>(prodSpecs);
   const { open } = useSidebar();
-  const { decodedToken } = useTokenDetails();
+  const { token, decodedToken } = useTokenDetails();
+
+  async function deleteProduct(id: number[]) {
+    let url = `http://localhost:8080/seller/product?productId=${id}`;
+    try {
+      const response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        // Handle HTTP errors (e.g., 404, 500)
+        console.error(`HTTP error! status: ${response.status}`);
+        toastNotification("HTTP error! status", getCurrentTime());
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Process the successful response (e.g., parse JSON)
+      const data = await response.json();
+      console.log("Product deleted successfully:", data);
+      return data; // Or return a success status, etc.
+
+    } catch (error) {
+      // Handle network errors or exceptions
+      console.error("There was an error deleting the product:", error);
+      toastNotification("There was an error deleting the product", getCurrentTime());
+      throw error; // Re-throw the error to be handled by the caller
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const apiResponse = await getData(
-          decodedToken.id,
+          decodedToken.role === "Admin" ? null : decodedToken.id,
           page,
           searchTerm,
           selectedColors,
@@ -342,15 +341,15 @@ export default function ProductList() {
 
       const categoryObj = prodSpecsData.categories.find(obj => obj.categoryName === editedValues.categoryName);
       const seriesObj = prodSpecsData.series.find(obj => obj.seriesName === editedValues.seriesName);
-      const transformedValues = {
+      const transformedValues:UpdateProductType = {
         ...editedValues,
         categoryId: editedValues.categoryName ?
-          (categoryObj ? categoryObj.categoryId : null)
+          (categoryObj ? categoryObj.categoryId : 0)
           : 0,
         seriesId: editedValues.seriesName ? (
-          seriesObj ? seriesObj.series_id : null
+          seriesObj ? seriesObj.series_id : 0
         ) : 0,
-        productColors: Array.isArray(editedValues.colors)
+        colors: Array.isArray(editedValues.colors)
           ? editedValues.colors
             .map((colorName) => {
               const colorObj = prodSpecsData.colors.find((obj) => obj.color_name === colorName);
@@ -358,7 +357,7 @@ export default function ProductList() {
             })
             .filter((id): id is number => id !== null) // Remove null values
           : [],
-        productSizes: Array.isArray(editedValues.sizes)
+        sizes: Array.isArray(editedValues.sizes)
           ? editedValues.sizes
             .map((sizeName) => {
               const sizeObj = prodSpecsData.sizes.find((obj) => obj.size_name === sizeName);
@@ -366,12 +365,13 @@ export default function ProductList() {
             })
             .filter((id): id is number => id !== null) // Remove null values
           : [],
+        userId: editedValues.sellerId,
       };
 
       // console.log(transformedValues);
       // console.log("Before convertion:", editedValues.colors, editedValues.sizes);
       // console.log("Final Edited Values:", transformedValues.colors, transformedValues.sizes);
-      updateProducts(transformedValues)
+      updateProducts([transformedValues], token, decodedToken)
         .then(() => {
           setData((prev) =>
             prev.map((product) =>
