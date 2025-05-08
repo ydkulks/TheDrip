@@ -20,7 +20,7 @@ import {
   Shirt,
   Book,
   Star,
-  LayoutDashboard,
+  ChartColumn,
   ChevronDown,
   Instagram,
   Twitter,
@@ -167,7 +167,7 @@ const CommandDialogPopup: FC<CommandPaletteState> = ({ open, setOpen }) => {
             )}
             {decodedToken.role === "Seller" && (
               <CommandItem onSelect={() => handleSelect('/profile/dashboard')}>
-                <LayoutDashboard />
+                <ChartColumn />
                 <span>Dashboard</span>
               </CommandItem>
             )}
