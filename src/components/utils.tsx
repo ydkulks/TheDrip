@@ -52,6 +52,7 @@ interface TokenType {
   id: number;
   role: string;
   sub: string;
+  passwordResetRequired: boolean;
 }
 // export const [token, setToken] = useState(localStorage.getItem("token"))
 // export function tokenDetails(): tokenType {
@@ -74,7 +75,7 @@ export function useTokenDetails() {
         // return null;
       }
     }
-    return { email: "", exp: 0, iat: 0, id: 0, role: "", sub: "" };
+    return { email: "", exp: 0, iat: 0, id: 0, role: "", sub: "", passwordResetRequired: false };
   });
 
   useEffect(() => {
@@ -85,12 +86,12 @@ export function useTokenDetails() {
         localStorage.setItem("token", token); // Ensure localStorage is updated if token changes
       } catch (error) {
         console.error("Error decoding token:", error);
-        setDecodedToken({ email: "", exp: 0, iat: 0, id: 0, role: "", sub: "" });
+        setDecodedToken({ email: "", exp: 0, iat: 0, id: 0, role: "", sub: "", passwordResetRequired: false });
         localStorage.removeItem("token"); // Optionally remove invalid token
         setToken(null); // Optionally clear the token state as well
       }
     } else {
-      setDecodedToken({ email: "", exp: 0, iat: 0, id: 0, role: "", sub: "" });
+      setDecodedToken({ email: "", exp: 0, iat: 0, id: 0, role: "", sub: "", passwordResetRequired: false });
       localStorage.removeItem("token");
     }
   }, [token]);

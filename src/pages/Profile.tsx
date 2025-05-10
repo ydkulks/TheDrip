@@ -15,6 +15,9 @@ import Orders from "./profile/Orders.tsx";
 import { Command, Github, LucideMousePointerClick, Mouse, Space } from "lucide-react";
 import { Badge } from "@/components/ui/badge.tsx";
 import Dashboard from "./profile/Dashboard.tsx";
+import { UserManagement } from "./profile/UserManagement.tsx";
+import { Role } from "@/components/types.ts";
+import AuthCheck from "./AuthCheck.tsx";
 
 const Profile = () => {
   const location = useLocation();
@@ -120,12 +123,17 @@ const Profile = () => {
             <Routes>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="product_list" element={<ProductList />} />
-              <Route path="product_list/product_details" element={<ProductDetails />} />
+              <Route path="product_list/product_details" element={
+                <AuthCheck
+                  allowedRoles={[Role.SELLER]}
+                  children={<ProductDetails />} />
+              } />
               <Route path="product_list/product_images" element={<ProductImages />} />
               <Route path="product_list/product_update" element={<ProductUpdate />} />
               <Route path="account" element={<AccountPage />} />
               <Route path="reviews" element={<Reviews />} />
               <Route path="orders" element={<Orders />} />
+              <Route path="user_management" element={<UserManagement />} />
             </Routes>
           </div>
         </SidebarInset>

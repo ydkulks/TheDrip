@@ -27,7 +27,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { columns } from "./columns"; // Import the columns
-import { Product } from "@/components/types"; // Import types
+import { Product, Role } from "@/components/types"; // Import types
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ClipboardPlus, Columns, Ellipsis, Filter, Images, Plus, Search, SquarePen, Trash } from "lucide-react";
 import {
@@ -341,7 +341,7 @@ export default function ProductList() {
 
       const categoryObj = prodSpecsData.categories.find(obj => obj.categoryName === editedValues.categoryName);
       const seriesObj = prodSpecsData.series.find(obj => obj.seriesName === editedValues.seriesName);
-      const transformedValues:UpdateProductType = {
+      const transformedValues: UpdateProductType = {
         ...editedValues,
         categoryId: editedValues.categoryName ?
           (categoryObj ? categoryObj.categoryId : 0)
@@ -693,7 +693,7 @@ export default function ProductList() {
               <DropdownMenuLabel>Table Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={handleNewProduct}>
+                <DropdownMenuItem disabled={decodedToken.role === Role.ADMIN} onClick={handleNewProduct}>
                   Create Product
                   <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                 </DropdownMenuItem>
@@ -821,9 +821,13 @@ export default function ProductList() {
                           className="h-24 text-center"
                         >
                           {/*No results.*/}
-                          <Link to="/profile/product_list/product_details">
-                            <Button variant="default">Create New Product</Button>
-                          </Link>
+                          {decodedToken.role === Role.ADMIN ?
+                            "No products found"
+                            :
+                            <Link to="/profile/product_list/product_details">
+                              <Button variant="default">Create New Product</Button>
+                            </Link>
+                          }
                         </TableCell>
                       </TableRow>
                     )}
@@ -834,7 +838,10 @@ export default function ProductList() {
           </Card>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-64">
-          <ContextMenuItem onClick={handleNewProduct} className="gap-2">
+          <ContextMenuItem
+            disabled={decodedToken.role === Role.ADMIN}
+            onClick={handleNewProduct}
+            className="gap-2">
             <Plus size={16} />
             <span className=""> Create New Product</span>
           </ContextMenuItem>

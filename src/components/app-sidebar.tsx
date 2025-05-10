@@ -1,4 +1,4 @@
-import { Search, Shirt, Trash, LogOut, BadgeCheck, ShoppingCart, Star, Book, ChartColumn } from "lucide-react"
+import { Search, Shirt, Trash, LogOut, BadgeCheck, ShoppingCart, Star, Book, ChartColumn, User, Lock } from "lucide-react"
 import { Link } from 'react-router-dom'
 
 import {
@@ -18,6 +18,24 @@ import { Button } from "./ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useTokenDetails } from "./utils";
 import { NavUser } from "./nav-user";
+
+const administration = [
+  {
+    title: "Dashboard",
+    url: "/profile/dashboard",
+    icon: ChartColumn,
+  },
+  {
+    title: "Products",
+    url: "/profile/product_list",
+    icon: Shirt,
+  },
+  {
+    title: "User Management",
+    url: "/profile/user_management",
+    icon: User,
+  },
+]
 
 const product = [
   {
@@ -62,8 +80,13 @@ const account = [
     icon: LogOut,
   },
   {
+    title: "Password Reset",
+    url: "/profile/account",
+    icon: Lock,
+  },
+  {
     title: "Delete Account",
-    url: "/profile/account#delete_account",
+    url: "/profile/account",
     icon: Trash,
   },
 ]
@@ -134,7 +157,27 @@ const userData: user = {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {decodedToken.role === "Seller" || decodedToken.role === "Admin" ?
+        {decodedToken.role === "Admin" ?
+          <><SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {administration.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <Link to={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+            <SidebarSeparator /></>
+          : null}
+        {decodedToken.role === "Seller" ?
           <><SidebarGroup>
             <SidebarGroupLabel>My Product</SidebarGroupLabel>
             <SidebarGroupContent>

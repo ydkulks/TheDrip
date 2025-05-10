@@ -100,8 +100,12 @@ export default function AccountPage() {
   };
 
   // Password Reset
+  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const handlePasswordChange = (event: any) => {
+  const handleOldPasswordChange = (event: any) => {
+    setOldPassword(event.target.value);
+  };
+  const handleNewPasswordChange = (event: any) => {
     setNewPassword(event.target.value);
   };
 
@@ -112,7 +116,7 @@ export default function AccountPage() {
       const username = decodedToken.sub;
 
       // Basic client-side validation (can be improved)
-      if (newPassword.length < 8) {
+      if (oldPassword.length < 8 || newPassword.length < 8) {
         toastNotification(
           "Validation Error",
           "Password must be at least 8 characters.",
@@ -121,16 +125,17 @@ export default function AccountPage() {
         return; // Stop the submission
       }
 
-      const response = await fetch(`http://localhost:8080/api/reset-password?username=${username}&newPassword=${newPassword}`, {
-        method: "POST",
+      const response = await fetch(`http://localhost:8080/api/reset-password`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Assuming token is stored in localStorage
+          Authorization: `Bearer ${token}`,
         },
-        // body: JSON.stringify({
-        //   username: username,
-        //   newPassword: newPassword,
-        // }),
+        body: JSON.stringify({
+          username: username,
+          oldPassword: oldPassword,
+          newPassword: newPassword,
+        }),
       });
 
       if (response.ok) {
@@ -138,6 +143,7 @@ export default function AccountPage() {
           "Password reset successful!",
           "Your password has been reset.",
         );
+        setOldPassword(""); // Clear the input after success
         setNewPassword(""); // Clear the input after success
       } else {
         toastNotification(
@@ -332,10 +338,17 @@ export default function AccountPage() {
             <CardContent>
               <Input
                 type="password"
+                placeholder="Old password"
+                className="mb-2"
+                value={oldPassword}
+                onChange={handleOldPasswordChange}
+              />
+              <Input
+                type="password"
                 placeholder="New password"
                 className="mb-2"
                 value={newPassword}
-                onChange={handlePasswordChange}
+                onChange={handleNewPasswordChange}
               />
               <Button variant="outline" disabled={isPwdSubmitting} onClick={handleResetPassword}>
                 <Lock />

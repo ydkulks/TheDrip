@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { getProductsById, toastNotification, useTokenDetails } from "./utils"
-import type { ApiResponse } from "./types"
+import { Role, type ApiResponse } from "./types"
 import {
   Pagination,
   PaginationContent,
@@ -89,13 +89,13 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string[] }>({})
-  const { decodedToken } = useTokenDetails();
+  const { token, decodedToken } = useTokenDetails();
 
   useEffect(() => {
     // Get username from token
     try {
       const details = decodedToken
-      if (details && details.sub) {
+      if (details && details.sub && details.role === Role.SELLER) {
         setUsername(details.sub)
       }
     } catch (error) {
@@ -104,7 +104,7 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
 
     const fetchSellerProducts = async (): Promise<Product[]> => {
       try {
-        const token = localStorage.getItem("token")
+        // const token = localStorage.getItem("token")
         if (!token) {
           throw new Error("Authentication token not found. Please log in again.")
         }
@@ -115,6 +115,10 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
           throw new Error("No product data received from API")
         }
 
+        // TODO: Handle scenario where products of more than one seller's data needs to be updated
+        if (decodedToken && decodedToken.sub && decodedToken.role === Role.SELLER) {
+          setUsername(response.content[0].seriesName)
+        }
         setTotalPages(response.page.totalPages)
 
         // Convert API product data to the format used in this component
@@ -365,7 +369,7 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
     }
 
     // Get token from localStorage
-    const token = localStorage.getItem("token")
+    // const token = localStorage.getItem("token")
     if (!token) {
       toastNotification("Authentication Error", "Authentication token not found. Please log in again.")
       return
@@ -581,8 +585,8 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                       <div
                         key={product.id}
                         className={`p-3 rounded-md cursor-pointer transition-colors flex justify-between items-center ${selectedProducts.some((p) => p.id === product.id)
-                            ? "bg-primary/10 border border-primary"
-                            : "border hover:bg-muted"
+                          ? "bg-primary/10 border border-primary"
+                          : "border hover:bg-muted"
                           }`}
                         onClick={() => handleProductSelect(product)}
                       >
@@ -735,8 +739,8 @@ export default function BulkUploadPage({ productIds }: BulkUploadProps) {
                                               toggleExistingImageDelete(product.id, image.id)
                                             }}
                                             className={`${isMarkedForDeletion
-                                                ? "bg-primary text-primary-foreground opacity-100"
-                                                : "bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100"
+                                              ? "bg-primary text-primary-foreground opacity-100"
+                                              : "bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100"
                                               } rounded-full p-1 transition-opacity`}
                                             disabled={isUploading}
                                           >

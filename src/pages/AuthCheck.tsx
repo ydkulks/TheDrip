@@ -51,6 +51,12 @@ function AuthCheck({ children, allowedRoles }: AuthCheckProps) {
         navigate("/login");
         return null; // Important: Prevent further rendering
       }
+
+      if (token && decodedToken.passwordResetRequired) {
+        toastNotification("Password Reset Required!", "Please change your password")
+        navigate("/profile/account");
+        return null; // Important: Prevent further rendering
+      }
     }
     isLoggedIn()
   }, [])

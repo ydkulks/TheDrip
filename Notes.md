@@ -11,11 +11,11 @@
     - [x] Tool tip
     - [x] Hero section
 - [ ] Profile
-    - [ ] Account
+    - [x] Account
         - [x] Basic UI
         - [x] Logout
         - [x] Password reset
-        - [ ] Delete account
+        - [x] Delete account
     - [ ] Seller features
         - [x] Create product
             - [x] UI
@@ -100,7 +100,16 @@
             - [x] Cancel UI
     - [ ] Admin features
         - [ ] Create Users with temp credentials
-        - [ ] Manage Products for other users
+            - [x] Force password reset
+        - [ ] Manage Products for other sellers
+            - [x] Should not be able to create products
+            - [x] Update products
+            - [ ] Delete images
+            - [ ] Delete products
+        - [ ] Manage Product Specifications
+            - [ ] Series
+            - [ ] Colors
+            - [ ] Sizes
 
 ## 🧑‍💻 Technologies Used
 - React.js
