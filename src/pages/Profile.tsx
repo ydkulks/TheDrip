@@ -18,6 +18,7 @@ import Dashboard from "./profile/Dashboard.tsx";
 import { UserManagement } from "./profile/UserManagement.tsx";
 import { Role } from "@/components/types.ts";
 import AuthCheck from "./AuthCheck.tsx";
+import { CreateUser } from "./profile/CreateUser.tsx";
 
 const Profile = () => {
   const location = useLocation();
@@ -134,6 +135,7 @@ const Profile = () => {
               <Route path="reviews" element={<Reviews />} />
               <Route path="orders" element={<Orders />} />
               <Route path="user_management" element={<UserManagement />} />
+              <Route path="user_management/create_user" element={<CreateUser />} />
             </Routes>
           </div>
         </SidebarInset>

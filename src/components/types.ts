@@ -71,3 +71,29 @@ export enum Role {
   ADMIN = "Admin",
   SELLER = "Seller"
 }
+
+export type PaginationType = {
+  sort: string;
+  // sortBy?: string;
+  // sortDirection?: string;
+  page?: number;
+  size?: number;
+}
+export type UserModel = {
+  id: number;
+  email: string;
+  username: string;
+  role: Role;
+  passwordResetRequired: boolean;
+  created: string;
+  updated: string;
+}
+export type Users = {
+  content: UserModel[];
+  page: {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+  };
+};

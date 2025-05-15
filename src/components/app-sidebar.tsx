@@ -20,11 +20,12 @@ import { useTokenDetails } from "./utils";
 import { NavUser } from "./nav-user";
 
 const administration = [
-  {
-    title: "Dashboard",
-    url: "/profile/dashboard",
-    icon: ChartColumn,
-  },
+  // Note: Future enhancement?
+  // {
+  //   title: "Dashboard",
+  //   url: "/profile/dashboard",
+  //   icon: ChartColumn,
+  // },
   {
     title: "Products",
     url: "/profile/product_list",
