@@ -1,15 +1,34 @@
-<h1 align="center">TheDrip</h1>
+<h1 align="center">TheDrip - ザ・ドリップ</h1>
 <p align="center">Low-Key Anime, High-Key Fashion</p>
 
+"TheDrip" is a novel e-commerce platform targeting the young, fashion-forward audience, a demographic that has grown up with and appreciates anime culture. By focusing on subtle, "low-key" anime-inspired streetwear, "TheDrip" bridges the gap between mainstream fashion and niche anime merchandise.
+
 ## Demo
-- Customer Journey
 <https://github.com/user-attachments/assets/1b482eeb-531d-471f-8c34-4d588308b3c0>
 
-- Seller Journey
 <https://github.com/user-attachments/assets/e4a17d3e-7a1c-4fb4-95a4-d7e21983897b>
 
-- Admin Journey
 <https://github.com/user-attachments/assets/14f70fe8-6e8b-468d-a581-b51070d14570>
+
+## Technologies Used
+1. [Front-end](https://github.com/ydkulks/TheDrip)
+    - React.js
+    - TailwindCSS
+    - ShadCN UI
+    - Yup
+    - Framer Motion
+    - Vercel
+1. [Back-end](https://github.com/ydkulks/TheDrip-Backend)
+    - Spring Boot
+        - Gradle
+    - JWT (JSON Web Token)
+    - PostgreSQL
+    - Stripe
+3. Development Tools and Workflow
+    - Neovim(btw)
+    - Git & Github
+    - Excalidraw
+    - Postman & Bruno
 
 ## Architecture Overview
 - System Architecture
